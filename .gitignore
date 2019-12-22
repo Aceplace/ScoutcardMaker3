@@ -1,0 +1,6 @@
+venv/
+.idea/
+__pycache__/
+
+parsetab.py
+parser.out
