@@ -137,8 +137,7 @@ token_value_bin_op_map = {
 
 def p_expression_bin(p):
     '''expression   : expression AND expression
-                    | expression OR expression
-                    | expression NOTEQUAL expression'''
+                    | expression OR expression'''
     p[0] = BinaryOpNode(p[1], token_value_bin_op_map[p[2]], p[3])
 
 
@@ -151,13 +150,14 @@ def p_expression_not(p):
     '''expression   : NOT expression'''
     p[0] = NotNode(p[1])
 
-def p_expression_func(p):
-    '''expression   : function'''
-    p[0] = p[1]
-
 def p_expression_parens(p):
     '''expression   : LPAREN expression RPAREN'''
     p[0] = p[2]
+
+def p_expression_misc(p):
+    '''expression   : function
+                    | comparison'''
+    p[0] = p[1]
 
 def p_comparison(p):
     '''comparison   : expression LTE expression
@@ -165,7 +165,7 @@ def p_comparison(p):
                     | expression EQUALS expression
                     | expression LT expression
                     | expression GT expression
-                    | expression NOTEQUALS expression'''
+                    | expression NOTEQUAL expression'''
     p[0] = BinaryOpNode(p[1], token_value_bin_op_map[p[2]], p[3])
 
 def p_func(p):
@@ -192,4 +192,3 @@ def p_error(p):
     print("Parse error: " + str(p))
 
 parser = yacc.yacc()
-

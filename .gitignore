@@ -1,6 +1,10 @@
 venv/
 .idea/
 __pycache__/
+build/
+dist/
+ScoutCardMaker/scout_card_maker_scoutcardmaker.egg-info/
 
 parsetab.py
 parser.out
+
