@@ -40,6 +40,11 @@ class Subformation:
     def copy_from(self, subformation):
         self.players = copy.deepcopy(subformation.players)
 
+    def copy_affected(self, subformation, affected_player_tags):
+        for key, player in self.players.items():
+            if player.tag in affected_player_tags:
+                self.players[key] = copy.deepcopy(subformation.players[key])
+
     def flip(self):
         self.players['L1'].x, self.players['L4'].x = self.players['L4'].x, self.players['L1'].x
         self.players['L2'].x, self.players['L3'].x = self.players['L3'].x, self.players['L2'].x
@@ -74,35 +79,41 @@ class Formation:
             'LH_LT': Subformation(),
             'RH_LT': Subformation(),
         }
-        test_subformation_positions = {'L1': (-8, 0), 'L2': (-4, 0), 'L3': (4, 0), 'L4': (8, 0), 'C': (0, 0),
-                                       'S1': (0, 1), 'S2': (0, 4), 'S3': (0, 6), 'S4': (12, 0), 'S5': (-36, 0),
+        default_subformations = {'L1': (-8, 0), 'L2': (-4, 0), 'L3': (4, 0), 'L4': (8, 0), 'C': (0, 0),
+                                       'S1': (0, 1), 'S2': (0, 6), 'S3': (0, 4), 'S4': (-36, 0), 'S5': (12, 0),
                                        'S6': (36, 1)}
-        for tag, position in test_subformation_positions.items():
+        for tag, position in default_subformations.items():
             self.subformations['MOF_RT'].players[tag].x = position[0]
             self.subformations['MOF_RT'].players[tag].y = position[1]
 
-        test_subformation_positions = {'L1': (-26, 0), 'L2': (-22, 0), 'L3': (-14, 0), 'L4': (-10, 0), 'C': (-18, 0),
-                                       'S1': (-18, 1), 'S2': (-18, 4), 'S3': (-18, 6), 'S4': (-6, 0), 'S5': (-44, 0),
+        default_subformations = {'L1': (-26, 0), 'L2': (-22, 0), 'L3': (-14, 0), 'L4': (-10, 0), 'C': (-18, 0),
+                                       'S1': (-18, 1), 'S2': (-18, 6), 'S3': (-18, 4), 'S4': (-44, 0), 'S5': (-6, 0),
                                        'S6': (20, 1)}
-        for tag, position in test_subformation_positions.items():
+        for tag, position in default_subformations.items():
             self.subformations['LH_RT'].players[tag].x = position[0]
             self.subformations['LH_RT'].players[tag].y = position[1]
 
-        test_subformation_positions = {'L1': (10, 0), 'L2': (14, 0), 'L3': (22, 0), 'L4': (26, 0), 'C': (18, 0),
-                                       'S1': (18, 1), 'S2': (18, 4), 'S3': (18, 6), 'S4': (30, 0), 'S5': (-20, 0),
+        default_subformations = {'L1': (10, 0), 'L2': (14, 0), 'L3': (22, 0), 'L4': (26, 0), 'C': (18, 0),
+                                       'S1': (18, 1), 'S2': (18, 6), 'S3': (18, 4), 'S4': (-20, 0), 'S5': (30, 0),
                                        'S6': (44, 1)}
-        for tag, position in test_subformation_positions.items():
+        for tag, position in default_subformations.items():
             self.subformations['RH_RT'].players[tag].x = position[0]
             self.subformations['RH_RT'].players[tag].y = position[1]
 
+        self.auto_gen_going_left_from_right()
+
+        self.affected_tags = []
+
+    def copy_from(self, formation):
+        self = copy.deep_copy(formation)
+
+    def auto_gen_going_left_from_right(self):
         self.subformations['MOF_LT'].copy_from(self.subformations['MOF_RT'])
         self.subformations['MOF_LT'].flip()
         self.subformations['LH_LT'].copy_from(self.subformations['RH_RT'])
         self.subformations['LH_LT'].flip()
         self.subformations['RH_LT'].copy_from(self.subformations['LH_RT'])
         self.subformations['RH_LT'].flip()
-
-        self.affected_tags = []
 
     def __repr__(self):
         subformation_strings = ',\n'.join(f'{key}:{item}' for (key,item) in self.subformations.items())
@@ -153,11 +164,64 @@ class PersonnelLabelMapper:
         return label_mapper
 
 
+
+
 class OffenseLibrary:
+    Default_Formation = Formation()
+
     def __init__(self):
         self.formations = {}
         self.label_mappers = {'default': PersonnelLabelMapper()}
 
+    def save_formation(self, formation, name):
+        formation_name = name.upper().strip().split()
+        formation_name = ' '.join(formation_name)
+
+        new_formation = Formation()
+        new_formation.copy_from(formation)
+
+        self.formations[formation_name] = new_formation
+
+    def get_composite_subformation(self, hash, name):
+        formation_words = name.strip().toupper().split()
+        if 'RT' in formation_words and 'LT' in formation_words:
+            return (None, 'Formation can\'t go left and right')
+        elif 'RT' in formation_words:
+            formation_direction = 'RT'
+        elif 'LT' in formation_words:
+            formation_direction = 'LT'
+        else:
+            return (None, 'Formation requires direction')
+
+        subformation_to_return = Subformation()
+        subformation_to_return.copy_from(OffenseLibrary.Default_Formation.subformations[f'{hash}_{formation_direction}'])
+
+        start_index = 0
+        current_index = 0
+        match_index = 0
+        matching_formation_name = ''
+        while start_index < len(formation_words):
+            if formation_words[current_index] in ['LT', 'RT'] and current_index == start_index:
+                start_index += 1
+                current_index += 1
+                continue
+            if current_index >= len(formation_words) or formation_words[current_index] in ['LT', 'RT']:
+                if len(matching_formation_name) == 0:
+                    return (None, f'Formation {name} not found in library.')
+                else:
+                    subformation_to_copy = self.formations[matching_formation_name].subformations[f'{hash}_{formation_direction}']
+                    affected_players = self.formations[matching_formation_name].affected_tags
+                    subformation_to_return.copy_affected(subformation_to_copy, affected_players)
+                    start_index = match_index + 1
+                    current_index = match_index + 1
+                    matching_formation_name = ''
+            subformation_name = ' '.join(formation_words[start_index: current_index + 1])
+            if subformation_name in self.formations:
+                match_index = current_index
+                matching_formation_name = subformation_name
+            current_index += 1
+
+        return (subformation_to_copy, None)
 
     def __repr__(self):
         return f'OffenseLibrary(Formations({self.formations}), Personnel Groups({self.label_mappers}))'
