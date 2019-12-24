@@ -105,7 +105,8 @@ class Formation:
         self.affected_tags = []
 
     def copy_from(self, formation):
-        self = copy.deep_copy(formation)
+        self.subformations = copy.deepcopy(formation.subformations)
+        self.affected_tags = copy.deepcopy(formation.affected_tags)
 
     def auto_gen_going_left_from_right(self):
         self.subformations['MOF_LT'].copy_from(self.subformations['MOF_RT'])
@@ -139,7 +140,7 @@ class PersonnelLabelMapper:
         self.mappings = {'L1': 'LT',
                          'L2': 'LG',
                          'L3': 'RG',
-                         'L4': 'RG',
+                         'L4': 'RT',
                          'C': 'C',
                          'S1': 'Q',
                          'S2': 'T',
