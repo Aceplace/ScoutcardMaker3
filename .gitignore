@@ -7,5 +7,6 @@ ScoutCardMaker/scout_card_maker_scoutcardmaker.egg-info/
 
 parsetab.py
 parser.out
+*.json
 
 ScoutCardMaker/scout_card_maker.egg-info/
