@@ -206,42 +206,28 @@
             <layout class="QGridLayout" name="gridLayout_3">
              <item row="0" column="0">
               <layout class="QGridLayout" name="gridLayout_2">
-               <item row="0" column="0">
-                <widget class="QRadioButton" name="rb_mof">
-                 <property name="text">
-                  <string>MOF</string>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="1">
-                <widget class="QRadioButton" name="rb_composite_mof">
+                <widget class="QRadioButton" name="rb_composite">
                  <property name="text">
-                  <string>Composite MOF</string>
+                  <string>Composite</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="2">
+               <item row="1" column="0">
                 <widget class="QLabel" name="label_5">
                  <property name="text">
                   <string>Composite Name</string>
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
-                <widget class="QRadioButton" name="rb_field">
+               <item row="0" column="0">
+                <widget class="QRadioButton" name="rb_editing">
                  <property name="text">
-                  <string>Field</string>
+                  <string>Editing</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QRadioButton" name="rb_composite_lh">
-                 <property name="text">
-                  <string>Composite LH</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="2">
                 <widget class="QLineEdit" name="edit_composite">
                  <property name="enabled">
                   <bool>true</bool>
@@ -260,21 +246,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
-                <widget class="QRadioButton" name="rb_boundary">
-                 <property name="text">
-                  <string>Boundary</string>
-                 </property>
-                </widget>
-               </item>
                <item row="2" column="1">
-                <widget class="QRadioButton" name="rb_composite_rh">
-                 <property name="text">
-                  <string>Composite RH</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="2">
                 <widget class="QPushButton" name="btn_load_composite">
                  <property name="text">
                   <string>Load Composite</string>

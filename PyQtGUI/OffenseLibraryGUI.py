@@ -8,33 +8,30 @@ import itertools
 from scoutcardmaker.Offense import Formation, PersonnelLabelMapper, OffenseLibrary
 
 
+TOP_LEFT = (50, 25)
+HOR_YD_LEN = 10
+VER_YD_LEN = 22
+HASH_SIZE = 6
+OFF_PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1] + VER_YD_LEN)
+OFF_PLAYER_SIZE = (27, 18)
+NEXT_FIELD_OFFSET = VER_YD_LEN * 12
+
+
+def clamp(n, smallest, largest):
+    return max(smallest, min(n, largest))
+
+
 class FormationFrame(QFrame):
-    TOP_LEFT = (50, 20)
-    HOR_YD_LEN = 10
-    VER_YD_LEN = 25
-    HASH_SIZE = 6
-    OFF_PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1] + VER_YD_LEN * 16)
-    OFF_PLAYER_SIZE = (27, 22)
-
-
     @staticmethod
-    def off_player_coords_to_canvas(x, y):
-        return FormationFrame.OFF_PLAYER_START[0] + x * FormationFrame.HOR_YD_LEN, FormationFrame.OFF_PLAYER_START[1] + y * FormationFrame.VER_YD_LEN
-
-    @staticmethod
-    def canvas_coords_to_off_player(x, y):
-        return (x - FormationFrame.OFF_PLAYER_START[0]) // FormationFrame.HOR_YD_LEN, (y - FormationFrame.OFF_PLAYER_START[1]) // FormationFrame.VER_YD_LEN
-
-    @staticmethod
-    def nearest_off_player_coord(canvas_x, canvas_y):
-        return (canvas_x + FormationFrame.HOR_YD_LEN // 2 - FormationFrame.OFF_PLAYER_START[0]) // FormationFrame.HOR_YD_LEN, \
-               (canvas_y + FormationFrame.VER_YD_LEN // 2 - FormationFrame.OFF_PLAYER_START[1]) // FormationFrame.VER_YD_LEN
+    def nearest_off_player_coord(canvas_x, canvas_y, field_number):
+        return ((canvas_x + HOR_YD_LEN // 2 - OFF_PLAYER_START[0]) // HOR_YD_LEN,
+                (canvas_y + VER_YD_LEN // 2 - (OFF_PLAYER_START[1] + NEXT_FIELD_OFFSET * field_number)) // VER_YD_LEN)
 
     def __init__(self, formation, personnel_mapper):
         super().__init__()
         self.setGeometry(0,0,600,600)
-        self.setMinimumWidth(FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * 108 + 20)
-        self.setMinimumHeight(FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 25 + 20)
+        self.setMinimumWidth(TOP_LEFT[0] + HOR_YD_LEN * 108 + 20)
+        self.setMinimumHeight(TOP_LEFT[1] + VER_YD_LEN * 39 + 20)
         self.setStyleSheet("background-color: white;")
         self.formation = formation
         self.current_subformation_key = "MOF_RT"
@@ -45,51 +42,68 @@ class FormationFrame(QFrame):
         painter = QPainter(self)
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
         painter.setBrush(QBrush(Qt.white))
-        self.draw_field(painter)
-        self.draw_subformation(painter)
+        self.draw_field(painter, 0, 'Middle of Field (Going Right)')
+        self.draw_field(painter, 1, 'Towards Field')
+        self.draw_field(painter, 2, 'Towards Boundary')
+        self.draw_subformation(painter, 0, "MOF_RT")
+        self.draw_subformation(painter, 1, "LH_RT")
+        self.draw_subformation(painter, 2, "RH_RT")
 
-    def draw_field(self, painter):
-        painter.drawLine(FormationFrame.TOP_LEFT[0], FormationFrame.TOP_LEFT[1],
-                         FormationFrame.TOP_LEFT[0], FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 25)
-        painter.drawLine(FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * 108, FormationFrame.TOP_LEFT[1],
-                         FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * 108, FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 25)
-        for row in range(6):
-            painter.drawLine(FormationFrame.TOP_LEFT[0], FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 5 * row,
-                             FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * 108, FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 5 * row)
+    def draw_field(self, painter, field_num, field_label):
+        top_left = (TOP_LEFT[0], TOP_LEFT[1] + NEXT_FIELD_OFFSET * field_num)
+        painter.drawLine(top_left[0], top_left[1], top_left[0], top_left[1] + VER_YD_LEN * 10)
+        painter.drawLine(top_left[0] + HOR_YD_LEN * 108, top_left[1], top_left[0] + HOR_YD_LEN * 108,
+                         top_left[1] + VER_YD_LEN * 10)
+        for row in range(3):
+            painter.drawLine(top_left[0], top_left[1] + VER_YD_LEN * 5 * row,
+                             top_left[0] + HOR_YD_LEN * 108, top_left[1] + VER_YD_LEN * 5 * row)
 
-        for combo in list(itertools.product([14, 18, 36, 72, 90, 94],[0, 1, 2, 3, 4, 5])):
+        for combo in list(itertools.product([14, 18, 36, 72, 90, 94],[0, 1, 2])):
             offset = combo[0]
             row = combo[1]
-            painter.drawLine(FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * offset,
-                             FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 5 * row - FormationFrame.HASH_SIZE / 2,
-                             FormationFrame.TOP_LEFT[0] + FormationFrame.HOR_YD_LEN * offset,
-                             FormationFrame.TOP_LEFT[1] + FormationFrame.VER_YD_LEN * 5 * row + FormationFrame.HASH_SIZE / 2)
+            painter.drawLine(top_left[0] + HOR_YD_LEN * offset, top_left[1] + VER_YD_LEN * 5 * row - HASH_SIZE / 2,
+                             top_left[0] + HOR_YD_LEN * offset, top_left[1] + VER_YD_LEN * 5 * row + HASH_SIZE / 2)
 
-    def draw_subformation(self, painter):
-        for player in self.formation.subformations[self.current_subformation_key].players.values():
-            painter.drawEllipse(FormationFrame.OFF_PLAYER_START[0] + player.x * FormationFrame.HOR_YD_LEN - FormationFrame.OFF_PLAYER_SIZE[0] / 2,
-                                FormationFrame.OFF_PLAYER_START[1] + player.y * FormationFrame.VER_YD_LEN - FormationFrame.OFF_PLAYER_SIZE[1] / 2,
-                                FormationFrame.OFF_PLAYER_SIZE[0], FormationFrame.OFF_PLAYER_SIZE[1])
-            painter.drawText(
-                FormationFrame.OFF_PLAYER_START[0] + player.x * FormationFrame.HOR_YD_LEN - FormationFrame.OFF_PLAYER_SIZE[0] / 2,
-                FormationFrame.OFF_PLAYER_START[1] + player.y * FormationFrame.VER_YD_LEN - FormationFrame.OFF_PLAYER_SIZE[1] / 2,
-                FormationFrame.OFF_PLAYER_SIZE[0], FormationFrame.OFF_PLAYER_SIZE[1], Qt.AlignCenter, self.personnel_mapper.get_label(player.tag))
+        painter.drawText(top_left[0], top_left[1] - VER_YD_LEN, 500, 40, Qt.AlignLeft, field_label)
+
+    def draw_subformation(self, painter, field_num, hash_key):
+        off_player_start = (OFF_PLAYER_START[0], OFF_PLAYER_START[1] + NEXT_FIELD_OFFSET * field_num)
+        for player in self.formation.subformations[hash_key].players.values():
+            painter.drawEllipse(off_player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
+                                off_player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
+                                OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1])
+            painter.drawText(off_player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
+                             off_player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
+                             OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1], Qt.AlignCenter,
+                             self.personnel_mapper.get_label(player.tag))
 
     def mousePressEvent(self, event):
         click_x, click_y = event.x(), event.y()
-        x, y = FormationFrame.nearest_off_player_coord(click_x, click_y)
+        x0, y0 = FormationFrame.nearest_off_player_coord(click_x, click_y, 0)
+        x1, y1 = FormationFrame.nearest_off_player_coord(click_x, click_y, 1)
+        x2, y2 = FormationFrame.nearest_off_player_coord(click_x, click_y, 2)
 
-        for player in self.formation.subformations[self.current_subformation_key].players.values():
-            if abs(player.x - x) <= 1 and player.y == y:
-                self.selected_player = player
+        for player in self.formation.subformations["MOF_RT"].players.values():
+            if abs(player.x - x0) <= 1 and player.y == y0:
+                self.selected_player = (player, 0)
+                break
+
+        for player in self.formation.subformations["LH_RT"].players.values():
+            if abs(player.x - x1) <= 1 and player.y == y1:
+                self.selected_player = (player, 1)
+                break
+
+        for player in self.formation.subformations["RH_RT"].players.values():
+            if abs(player.x - x2) <= 1 and player.y == y2:
+                self.selected_player = (player, 2)
                 break
 
     def mouseMoveEvent(self, event):
-        mouse_x, mouse_y= event.x(), event.y()
-        x, y = FormationFrame.nearest_off_player_coord(mouse_x, mouse_y)
-
         if self.selected_player:
-            self.selected_player.x, self.selected_player.y = x, y
+            mouse_x, mouse_y = event.x(), event.y()
+            x, y = FormationFrame.nearest_off_player_coord(mouse_x, mouse_y, self.selected_player[1])
+
+            self.selected_player[0].x, self.selected_player[0].y = x, y
             self.update()
 
     def mouseReleaseEvent(self, event):
@@ -107,14 +121,12 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.scrollArea_2.setWidget(self.formation_frame)
         self.show()
 
-        self.rb_mof.setChecked(True)
-        self.rb_mof.clicked.connect(lambda : self.handle_view_change('MOF_RT'))
-        self.rb_field.clicked.connect(lambda : self.handle_view_change('LH_RT'))
-        self.rb_boundary.clicked.connect(lambda : self.handle_view_change('RH_RT'))
+        self.rb_editing.setChecked(True)
 
         self.list_formations.itemClicked.connect(self.handle_formation_clicked)
         self.edit_formation_name.returnPressed.connect(self.handle_save_formation)
         self.btn_save_formation.clicked.connect(self.handle_save_formation)
+        self.btn_delete_selected_formation.clicked.connect(self.handle_delete_formation)
 
         self.actionSave_Library.triggered.connect(self.handle_save_library)
 
@@ -166,6 +178,13 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.modifying_formation.affected_tags = affected_tags
         self.formation_library.save_formation(self.modifying_formation, formation_name)
         self.load_formation_names_into_list()
+
+    def handle_delete_formation(self):
+        if self.list_formations.currentItem():
+            formation_name = self.list_formations.currentItem().text()
+
+            del self.formation_library.formations[formation_name]
+            self.load_formation_names_into_list()
 
     def load_formation_names_into_list(self):
         formation_names = [name for name in self.formation_library.formations.keys()]
