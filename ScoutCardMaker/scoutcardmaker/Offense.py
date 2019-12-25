@@ -176,17 +176,37 @@ class OffenseLibrary:
 
     def save_formation(self, formation, name):
         formation_name = name.upper().strip().split()
+        if 'LT' in formation_name or 'RT' in formation_name:
+            return False
+
         formation_name = ' '.join(formation_name)
 
         new_formation = Formation()
         new_formation.copy_from(formation)
 
         self.formations[formation_name] = new_formation
+        return True
+
+    def save_formation_from_going_rt(self, formation, name):
+        formation_name = name.upper().strip().split()
+        if 'LT' in formation_name or 'RT' in formation_name:
+            return False
+
+        formation_name = ' '.join(formation_name)
+
+        new_formation = Formation()
+        new_formation.copy_from(formation)
+        new_formation.auto_gen_going_left_from_right()
+
+        self.formations[formation_name] = new_formation
+        return True
 
     def get_composite_subformation(self, hash, name):
-        formation_words = name.strip().toupper().split()
-        if 'RT' in formation_words and 'LT' in formation_words:
-            return (None, 'Formation can\'t go left and right')
+        formation_words = name.strip().upper().split()
+        if len(formation_words) < 2:
+            return (None, 'Formation name requires at least two words')
+        if formation_words.count('RT') + formation_words.count('LT') > 1:
+            return (None, 'Formation can\'t specify a direction twice')
         elif 'RT' in formation_words:
             formation_direction = 'RT'
         elif 'LT' in formation_words:
@@ -197,32 +217,70 @@ class OffenseLibrary:
         subformation_to_return = Subformation()
         subformation_to_return.copy_from(OffenseLibrary.Default_Formation.subformations[f'{hash}_{formation_direction}'])
 
-        start_index = 0
-        current_index = 0
-        match_index = 0
-        matching_formation_name = ''
-        while start_index < len(formation_words):
-            if formation_words[current_index] in ['LT', 'RT'] and current_index == start_index:
-                start_index += 1
-                current_index += 1
-                continue
-            if current_index >= len(formation_words) or formation_words[current_index] in ['LT', 'RT']:
-                if len(matching_formation_name) == 0:
-                    return (None, f'Formation {name} not found in library.')
-                else:
-                    subformation_to_copy = self.formations[matching_formation_name].subformations[f'{hash}_{formation_direction}']
-                    affected_players = self.formations[matching_formation_name].affected_tags
-                    subformation_to_return.copy_affected(subformation_to_copy, affected_players)
-                    start_index = match_index + 1
-                    current_index = match_index + 1
-                    matching_formation_name = ''
-            subformation_name = ' '.join(formation_words[start_index: current_index + 1])
-            if subformation_name in self.formations:
-                match_index = current_index
-                matching_formation_name = subformation_name
-            current_index += 1
+        # start_index = 0
+        # current_index = 0
+        # match_index = 0
+        # matching_formation_name = ''
+        # while start_index < len(formation_words):
+        #     if current_index >= len(formation_words) or formation_words[current_index] in ['LT', 'RT']:
+        #         if len(matching_formation_name) == 0:
+        #             return (None, f'Formation {name} not found in library.')
+        #         else:
+        #             subformation_to_copy = self.formations[matching_formation_name].subformations[f'{hash}_{formation_direction}']
+        #             affected_players = self.formations[matching_formation_name].affected_tags
+        #             subformation_to_return.copy_affected(subformation_to_copy, affected_players)
+        #             start_index = match_index + 1
+        #             current_index = match_index + 1
+        #             matching_formation_name = ''
+        #     if formation_words[current_index] in ['LT', 'RT'] and current_index == start_index:
+        #         start_index += 1
+        #         current_index += 1
+        #         continue
+        #     subformation_name = ' '.join(formation_words[start_index: current_index + 1])
+        #     if subformation_name in self.formations:
+        #         match_index = current_index
+        #         matching_formation_name = subformation_name
+        #     current_index += 1
+        matches = []
+        direction_index = formation_words.index(formation_direction)
+        words_1, words_2 = formation_words[0: direction_index], formation_words[direction_index + 1:]
 
-        return (subformation_to_copy, None)
+        if len(words_1) > 0:
+            start_index = 0
+            end_index = len(words_1)
+
+            while start_index < len(words_1):
+                subformation_name = ' '.join(words_1[start_index:end_index])
+                if subformation_name in self.formations:
+                    matches.append(subformation_name)
+                    start_index = end_index
+                    end_index = len(words_1)
+                else:
+                    end_index -= 1
+                    if end_index == start_index:
+                        return (None, f'Formation {name} not found in library.')
+
+        if len(words_2) > 0:
+            start_index = 0
+            end_index = len(words_2)
+
+            while start_index < len(words_2):
+                subformation_name = ' '.join(words_2[start_index:end_index])
+                if subformation_name in self.formations:
+                    matches.append(subformation_name)
+                    start_index = end_index
+                    end_index = len(words_2)
+                else:
+                    end_index -= 1
+                    if end_index == start_index:
+                        return (None, f'Formation {name} not found in library.')
+
+        for match in matches:
+            subformation_to_copy = self.formations[match].subformations[ f'{hash}_{formation_direction}']
+            affected_players = self.formations[match].affected_tags
+            subformation_to_return.copy_affected(subformation_to_copy, affected_players)
+
+        return (subformation_to_return, None)
 
     def __repr__(self):
         return f'OffenseLibrary(Formations({self.formations}), Personnel Groups({self.label_mappers}))'
@@ -252,8 +310,8 @@ import json
 #     library.formations['Pro'] = Formation()
 #     library.formations['Twin'] = Formation()
 #     json.dump(library.to_dict(), file, indent=4)
-
-# with open('file2.json', 'r') as file:
+#
+# with open('library.json', 'r') as file:
 #     library = OffenseLibrary.from_dict(json.load(file))
 #
-# print(library)
+# print(library.get_composite_subformation('MOF', 'Twin-Tight King Rt'))
