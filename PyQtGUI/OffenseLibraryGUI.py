@@ -34,7 +34,7 @@ class FormationFrame(QFrame):
         self.setMinimumHeight(TOP_LEFT[1] + VER_YD_LEN * 39 + 20)
         self.setStyleSheet("background-color: white;")
         self.formation = formation
-        self.current_subformation_key = "MOF_RT"
+        self.can_edit = True
         self.personnel_mapper = personnel_mapper
         self.selected_player = None
 
@@ -78,6 +78,8 @@ class FormationFrame(QFrame):
                              self.personnel_mapper.get_label(player.tag))
 
     def mousePressEvent(self, event):
+        if not self.can_edit:
+            return
         click_x, click_y = event.x(), event.y()
         x0, y0 = FormationFrame.nearest_off_player_coord(click_x, click_y, 0)
         x1, y1 = FormationFrame.nearest_off_player_coord(click_x, click_y, 1)
@@ -117,11 +119,16 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.formation_library = OffenseLibrary()
         self.selected_personnel_key = "default"
         self.modifying_formation = Formation()
+        self.composite_formation = Formation()
         self.formation_frame = FormationFrame(self.modifying_formation, self.formation_library.label_mappers['default'])
         self.scrollArea_2.setWidget(self.formation_frame)
         self.show()
 
         self.rb_editing.setChecked(True)
+        self.rb_editing.clicked.connect(self.handle_editing_view_change)
+        self.rb_composite.clicked.connect(self.handle_composite_view_change)
+        self.edit_composite.returnPressed.connect(self.handle_get_composite)
+        self.btn_load_composite.clicked.connect(self.handle_get_composite)
 
         self.list_formations.itemClicked.connect(self.handle_formation_clicked)
         self.edit_formation_name.returnPressed.connect(self.handle_save_formation)
@@ -134,9 +141,33 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.combo_personnel_grouping.currentIndexChanged[str].connect(self.handle_personnel_change)
         self.set_personnel_cb_text(self.formation_library.label_mappers['default'].mappings)
 
-    def handle_view_change(self, new_view_tag):
-        self.formation_frame.current_subformation_key = new_view_tag
+    def handle_editing_view_change(self):
+        self.formation_frame.can_edit = True
+        self.formation_frame.formation = self.modifying_formation
         self.formation_frame.update()
+
+    def handle_composite_view_change(self):
+        self.formation_frame.can_edit = False
+        self.formation_frame.formation = self.composite_formation
+        self.formation_frame.update()
+
+    def handle_get_composite(self):
+        formation_name = self.edit_composite.text()
+        #direction = 'RT' if 'RT' in formation_name.upper().trim().split() else 'LT'
+        try:
+            if len(formation_name) > 0:
+                mof_composite = self.formation_library.get_composite_subformation('MOF', formation_name)[0]
+                lh_composite = self.formation_library.get_composite_subformation('LH', formation_name)[0]
+                rh_composite = self.formation_library.get_composite_subformation('RH', formation_name)[0]
+                if not mof_composite is None:
+                    self.composite_formation.subformations['MOF_RT'].copy_from(mof_composite)
+                    self.composite_formation.subformations['LH_RT'].copy_from(lh_composite)
+                    self.composite_formation.subformations['RH_RT'].copy_from(rh_composite)
+                    self.formation_frame.update()
+        except Exception as e:
+            from traceback import format_exc
+            print(format_exc())
+
 
     def handle_personnel_change(self, new_personnel):
         self.formation_frame.personnel_mapper = self.formation_library.label_mappers[new_personnel]
@@ -176,7 +207,7 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
             affected_tags.append('S6')
 
         self.modifying_formation.affected_tags = affected_tags
-        self.formation_library.save_formation(self.modifying_formation, formation_name)
+        self.formation_library.save_formation_from_going_rt(self.modifying_formation, formation_name)
         self.load_formation_names_into_list()
 
     def handle_delete_formation(self):
