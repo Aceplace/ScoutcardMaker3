@@ -1,18 +1,18 @@
 from UI_OffensiveEditor import Ui_OffensiveEditor
-from PyQt5.QtWidgets import  QApplication, QMainWindow, QFrame, QMessageBox, QAction
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QMessageBox
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt
 import sys
 import json
 import itertools
-from scoutcardmaker.Offense import Formation, PersonnelLabelMapper, OffenseLibrary
+from scoutcardmaker.Offense import Formation, OffenseLibrary
 
 
 TOP_LEFT = (50, 25)
 HOR_YD_LEN = 10
 VER_YD_LEN = 22
 HASH_SIZE = 6
-OFF_PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1] + VER_YD_LEN)
+OFF_PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1])
 OFF_PLAYER_SIZE = (27, 18)
 NEXT_FIELD_OFFSET = VER_YD_LEN * 12
 
@@ -42,9 +42,9 @@ class FormationFrame(QFrame):
         painter = QPainter(self)
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
         painter.setBrush(QBrush(Qt.white))
-        self.draw_field(painter, 0, 'Middle of Field (Going Right)')
-        self.draw_field(painter, 1, 'Towards Field')
-        self.draw_field(painter, 2, 'Towards Boundary')
+        self.draw_field(painter, 0, 'Middle of Field (Going Right)' if self.can_edit else 'Middle of Field')
+        self.draw_field(painter, 1, 'Towards Field' if self.can_edit else 'Left Hash')
+        self.draw_field(painter, 2, 'Towards Boundary' if self.can_edit else 'Right Hash')
         self.draw_subformation(painter, 0, "MOF_RT")
         self.draw_subformation(painter, 1, "LH_RT")
         self.draw_subformation(painter, 2, "RH_RT")
@@ -153,7 +153,7 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
 
     def handle_get_composite(self):
         formation_name = self.edit_composite.text()
-        #direction = 'RT' if 'RT' in formation_name.upper().trim().split() else 'LT'
+        #self.composite_formation = Formation()
         try:
             if len(formation_name) > 0:
                 mof_composite = self.formation_library.get_composite_subformation('MOF', formation_name)[0]
@@ -227,9 +227,11 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
 
     def handle_formation_clicked(self, formation_clicked):
         formation_name = formation_clicked.data(0)
+        self.rb_editing.setChecked(True)
         self.edit_formation_name.setText(formation_name)
         self.modifying_formation.copy_from(self.formation_library.formations[formation_name])
         self.formation_frame.formation = self.modifying_formation
+        self.formation_frame.can_edit = True
         self.formation_frame.update()
 
         self.cb_l1.setChecked(True if 'L1' in self.modifying_formation.affected_tags else False)
