@@ -24,17 +24,17 @@ class Player:
 class Subformation:
     def __init__(self):
         self.players = {
-            'L1': Player('L1', 0, 0),
-            'L2': Player('L2', 0, 0),
-            'L3': Player('L3', 0, 0),
-            'L4': Player('L4', 0, 0),
-            'C': Player('C', 0, 0),
-            'S1': Player('S1', 0, 0),
-            'S2': Player('S2', 0, 0),
-            'S3': Player('S3', 0, 0),
-            'S4': Player('S4', 0, 0),
-            'S5': Player('S5', 0, 0),
-            'S6': Player('S6', 0, 0),
+            'L1': Player('L1', 0, 1),
+            'L2': Player('L2', 0, 1),
+            'L3': Player('L3', 0, 1),
+            'L4': Player('L4', 0, 1),
+            'C': Player('C', 0, 1),
+            'S1': Player('S1', 0, 1),
+            'S2': Player('S2', 0, 1),
+            'S3': Player('S3', 0, 1),
+            'S4': Player('S4', 0, 1),
+            'S5': Player('S5', 0, 1),
+            'S6': Player('S6', 0, 1),
         }
 
     def copy_from(self, subformation):
@@ -79,23 +79,23 @@ class Formation:
             'LH_LT': Subformation(),
             'RH_LT': Subformation(),
         }
-        default_subformations = {'L1': (-8, 0), 'L2': (-4, 0), 'L3': (4, 0), 'L4': (8, 0), 'C': (0, 0),
-                                       'S1': (0, 1), 'S2': (0, 6), 'S3': (0, 4), 'S4': (-36, 0), 'S5': (12, 0),
-                                       'S6': (36, 1)}
+        default_subformations = {'L1': (-8, 1), 'L2': (-4, 1), 'L3': (4, 1), 'L4': (8, 1), 'C': (0, 1),
+                                       'S1': (0, 2), 'S2': (0, 7), 'S3': (0, 5), 'S4': (-36, 1), 'S5': (12, 1),
+                                       'S6': (36, 2)}
         for tag, position in default_subformations.items():
             self.subformations['MOF_RT'].players[tag].x = position[0]
             self.subformations['MOF_RT'].players[tag].y = position[1]
 
-        default_subformations = {'L1': (-26, 0), 'L2': (-22, 0), 'L3': (-14, 0), 'L4': (-10, 0), 'C': (-18, 0),
-                                       'S1': (-18, 1), 'S2': (-18, 6), 'S3': (-18, 4), 'S4': (-44, 0), 'S5': (-6, 0),
-                                       'S6': (20, 1)}
+        default_subformations = {'L1': (-26, 1), 'L2': (-22, 1), 'L3': (-14, 1), 'L4': (-10, 1), 'C': (-18, 1),
+                                       'S1': (-18, 2), 'S2': (-18, 7), 'S3': (-18, 5), 'S4': (-44, 1), 'S5': (-6, 1),
+                                       'S6': (20, 2)}
         for tag, position in default_subformations.items():
             self.subformations['LH_RT'].players[tag].x = position[0]
             self.subformations['LH_RT'].players[tag].y = position[1]
 
-        default_subformations = {'L1': (10, 0), 'L2': (14, 0), 'L3': (22, 0), 'L4': (26, 0), 'C': (18, 0),
-                                       'S1': (18, 1), 'S2': (18, 6), 'S3': (18, 4), 'S4': (-20, 0), 'S5': (30, 0),
-                                       'S6': (44, 1)}
+        default_subformations = {'L1': (10, 1), 'L2': (14, 1), 'L3': (22, 1), 'L4': (26, 1), 'C': (18, 1),
+                                       'S1': (18, 2), 'S2': (18, 7), 'S3': (18, 5), 'S4': (-20, 1), 'S5': (30, 1),
+                                       'S6': (44, 2)}
         for tag, position in default_subformations.items():
             self.subformations['RH_RT'].players[tag].x = position[0]
             self.subformations['RH_RT'].players[tag].y = position[1]
