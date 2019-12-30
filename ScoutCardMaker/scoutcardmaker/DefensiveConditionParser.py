@@ -191,4 +191,15 @@ def p_argument(p):
 def p_error(p):
     print("Parse error: " + str(p))
 
-parser = yacc.yacc()
+
+condition_parser = yacc.yacc()
+
+
+class PlacementParser:
+    def parse(self, str_to_parse):
+        if len(str_to_parse) == 0:
+            return ('', [])
+        split_str_to_parse = str_to_parse.split()
+        return (split_str_to_parse[0], split_str_to_parse[1:])
+
+placement_parser = PlacementParser()
