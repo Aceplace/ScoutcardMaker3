@@ -4,6 +4,9 @@ from Offense import Formation
 INVALID_POSITION = (-100, -100)
 
 class ConditionSet:
+    placement_rule_map = None
+    condition_function_map = None
+
     def __init__(self):
         self.condition = ''
         self.placement_rule = ''
@@ -13,12 +16,17 @@ class ConditionSet:
         self.placement_rule = placement_rule
 
     def evaluate_condition(self, subformation):
+        # assert ConditionSet.condition_function_map, 'No condtion mapping specified'
+        # parsed_condition_tree = condition_parser.parse(self.condition)
+        #
+        # print(parsed_condition_tree)
         if len(self.condition) == 0:
-            return True
+            return ConditionInfo(True, True, None)
         else:
-            return False
+            return ConditionInfo(True, True, None)
 
     def get_placement(self, subformation):
+        assert ConditionSet.placement_rule_map,  'No placement rule mapping specified'
         parsed_placement_rule = placement_parser.parse(self.placement_rule)
         placement_rule_name = parsed_placement_rule[0]
         arguments = parsed_placement_rule[1]
@@ -39,12 +47,17 @@ class Defender:
 
     def place(self, subformation):
         for condition_set in self.condition_sets:
-            if condition_set.evaluate_condition(subformation):
+            condition_info = condition_set.evaluate_condition(subformation)
+            if not condition_info.success:
+                print(f'Couldn\t evaluate condition: {condition_info.error_message}')
+                continue
+            if condition_info.value:
                 placement_info = condition_set.get_placement(subformation)
                 if placement_info.success:
                     self.placed_x, self.placed_y = placement_info.position
                     return
                 else:
+                    print(f'Couldn\'t place: {placement_info.error_message}')
                     break
         self.placed_x, self.placed_y = INVALID_POSITION
 
@@ -52,6 +65,15 @@ class Defender:
         condition_set_strings = '\n'.join([repr(condition_set) for condition_set in self.condition_sets])
         return f'Defender({self.tag}, {self.placed_x}, {self.placed_y}, [{condition_set_strings}])'
 
+
+class ConditionInfo:
+    def __init__(self, success, value, error_message):
+        self.success = success
+        self.value = value
+        self.error_messsage = error_message
+
+    def __repr__(self):
+        return f'ConditionInfo({(self.success, self.value, self.error_message)})'
 
 class PlacementInfo:
     def __init__(self, success, position, error_message=None):
@@ -63,26 +85,16 @@ class PlacementInfo:
         return f'PlacementInfo({(self.success, self.position, self.error_message)})'
 
 
-def absolute(subformation, arguments):
-    if len(arguments) != 2:
-        return PlacementInfo(False, None, 'Argument mismatch')
-    try:
-        x = int(arguments[0])
-        y = int(arguments[1])
-    except ValueError:
-        return PlacementInfo(False, None, 'Argument must be integer numbers')
-    return PlacementInfo(True, (x, y), 'Argument mismatch')
 
-placement_rules = {
-    'absolute': absolute
-}
 
 
 if __name__ == '__main__':
+    from PlacementRules import placement_rules
+    ConditionSet.placement_rule_map = placement_rules
+
     formation = Formation()
     subformation = formation.subformations['MOF_RT']
-
     defender = Defender('d1')
-    defender.condition_sets[0].set('', 'absolute 10 20')
+    defender.condition_sets[0].set('Puppy() and Kitty("john")', 'absolute 30 20')
     defender.place(subformation)
     print(defender)

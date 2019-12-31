@@ -1,6 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
+
 class FunctionNode:
     def __init__(self, function_name, argument_list):
         self.function_name = function_name
@@ -11,6 +12,7 @@ class FunctionNode:
 
     def __repr__(self):
         return f'func {self.function_name} {self.argument_list}'
+
 
 class BinaryOpNode:
     def __init__(self, lvalue, operation, rvalue):
@@ -168,9 +170,13 @@ def p_comparison(p):
                     | expression NOTEQUAL expression'''
     p[0] = BinaryOpNode(p[1], token_value_bin_op_map[p[2]], p[3])
 
-def p_func(p):
+def p_func_args(p):
     '''function     : NAME LPAREN argumentList RPAREN'''
     p[0] = FunctionNode(p[1], p[3])
+
+def p_func_noargs(p):
+    '''function     : NAME LPAREN RPAREN'''
+    p[0] = FunctionNode(p[1], [])
 
 def p_arg_list(p):
     '''argumentList : argument
