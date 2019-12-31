@@ -52,6 +52,7 @@ class LiteralNode:
     def __repr__(self):
         return f'literal {self.value}'
 
+
 class NotNode:
     def __init__(self, node_to_not):
         self.node_to_not = node_to_not
@@ -61,6 +62,7 @@ class NotNode:
 
     def __repr__(self):
         return f'not ({self.node_to_not})'
+
 
 tokens = [
     'LPAREN',
@@ -195,7 +197,7 @@ def p_argument(p):
     p[0] = p[1]
 
 def p_error(p):
-    print("Parse error: " + str(p))
+    raise ValueError(str(p))
 
 
 condition_parser = yacc.yacc()
