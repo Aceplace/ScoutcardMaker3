@@ -26,7 +26,7 @@ def tech_alignment(subformation, arguments):
         return PlacementInfo(False, None, 'Depth must be integer number')
 
     align_side = arguments[2]
-    if align_side not in ['Attached->Receiver', 'Attached', 'Receiver', 'Back']:
+    if align_side not in ['Opposite Attached and Receiver', 'Attached', 'Receiver', 'Back', 'Field', 'Boundary', 'LT', 'RT']:
         return PlacementInfo(False, None, f'{align_side} Not an align side')
 
     opposite = arguments[3]
@@ -37,10 +37,7 @@ def tech_alignment(subformation, arguments):
 
 
 
-
-
-
-
 placement_rules = {
-    'absolute': absolute
+    'absolute': absolute,
+    'tech_alignment': tech_alignment
 }
