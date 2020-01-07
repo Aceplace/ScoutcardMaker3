@@ -10,32 +10,38 @@ def players_ordered(players, direction):
     return players
 
 
-def get_offense_players_ordered(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+def players_on_side(center_x, players, direction):
+    if direction == 'RT':
+        return [player for player in players if player.x > center_x]
+    else:
+        return [player for player in players if player.x < center_x]
+
+
+def distance_from_center(center_x, player):
+    return abs(center_x - player.x)
+
+
+def get_offense_players_ordered(players, direction='right_to_left'):
     return players_ordered(players, direction)
 
 
-def get_los_players_ordered(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+def get_los_players_ordered(players, direction='right_to_left'):
     players = list(filter(lambda player: player.y == 1, players))
     return players_ordered(players, direction)
 
 
-def get_center(subformation):
-    players = list(subformation.players.values())
+def get_center(players):
     players = list(filter(lambda player: player.tag == 'C', players))
     return players[0]
 
 
-def get_line_ordered(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+def get_line_ordered(players, direction='right_to_left'):
     players = list(filter(lambda player: player.tag in ['L1', 'L2', 'L3', 'L4', 'C'], players))
     return players_ordered(players, direction)
 
 
-def get_backfield_ordered(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
-    los_players = get_los_players_ordered(subformation, direction)
+def get_backfield_ordered(players, direction='right_to_left'):
+    los_players = get_los_players_ordered(players, direction)
     center_index = 0
     for index, player in enumerate(los_players):
         if player.tag == 'C':
@@ -49,27 +55,65 @@ def get_backfield_ordered(subformation, direction='right_to_left'):
     return players_ordered(players, direction)
 
 
-def get_skill_ordered(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+def get_skill_ordered(players, direction='right_to_left'):
     players = list(filter(lambda player: player.tag in ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], players))
     return players_ordered(players, direction)
 
 
-def get_attached_skill(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+def get_attached_skill(players, direction='right_to_left'):
     core_boundaries = get_attached_boundary(players)
     skill_players = list(filter(lambda player: player.tag in ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], players))
-    skill_players_in_backfield = get_backfield_ordered(subformation)
+    skill_players_in_backfield = get_backfield_ordered(players)
     possibly_attached_skill = list(filter(lambda player: player not in skill_players_in_backfield, skill_players))
     attached_players = list(filter(lambda player: player.x >= core_boundaries[0] and player.x <= core_boundaries[1], possibly_attached_skill))
 
     return players_ordered(attached_players, direction)
 
-def get_detached_skill(subformation, direction='right_to_left'):
-    players = list(subformation.players.values())
+
+def get_tightends(players, direction='right_to_left'):
+    attached_players = get_attached_skill(players, 'right_to_left')
+    center = get_center(players)
+    players_to_right = players_on_side(center.x, attached_players, 'RT')
+    players_to_left = players_on_side(center.x, attached_players, 'LT')
+
+    tightends = []
+    if len(players_to_right) > 0 and players_to_right[-1].y == 1:
+        tightends.append(players_to_right[-1])
+    if len(players_to_left) > 0 and players_to_left[0].y == 1:
+        tightends.append(players_to_left[0])
+
+    return players_ordered(tightends, direction)
+
+def get_all_oline(players):
+    players_ordered = get_los_players_ordered(players, 'right_to_left')
+    center_index = -1
+    for i in range(len(players_ordered)):
+        if players_ordered[i].tag = 'C':
+            center_index = i
+            break
+    return players_ordered[i + 2], players_ordered[i + 1], players_ordered[i - 1], players_ordered[i -2]
+
+
+def get_lt(players):
+    return get_all_oline(players)[0]
+
+
+def get_lg(players):
+    return get_all_oline(players)[1]
+
+
+def get_rg(players):
+    return get_all_oline(players)[2]
+
+
+def get_rt(players):
+    return get_all_oline(players)[3]
+
+
+def get_detached_skill(players, direction='right_to_left'):
     core_boundaries = get_attached_boundary(players)
     skill_players = list(filter(lambda player: player.tag in ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], players))
-    skill_players_in_backfield = get_backfield_ordered(subformation)
+    skill_players_in_backfield = get_backfield_ordered(players)
     possibly_detached_skill = list(filter(lambda player: player not in skill_players_in_backfield, skill_players))
     attached_players = list(filter(lambda player: player.x <= core_boundaries[0] or player.x >= core_boundaries[1], possibly_detached_skill))
 
@@ -77,7 +121,7 @@ def get_detached_skill(subformation, direction='right_to_left'):
 
 
 def get_attached_boundary(players):
-    center = get_center(subformation)
+    center = get_center(players)
     core_left = center.x - ATTACH_DISTANCE
     core_right = center.x + ATTACH_DISTANCE
     for i in range(11):
@@ -88,6 +132,41 @@ def get_attached_boundary(players):
     return core_left, core_right
 
 
+def get_direction_with_most_receivers(players):
+    receivers_to_left_of_lt = [player for player in players if player.x < get_lt(players).x]
+    receivers_to_right_of_rt = [player for player in players if player.x > get_rt(players).x]
+
+    if len(receivers_to_left_of_lt) > len(receivers_to_right_of_rt):
+        return 'LT'
+    if len(receivers_to_left_of_lt) < len(receivers_to_right_of_rt):
+        return 'RT'
+    return None
+
+
+def get_direction_with_most_attached_receivers(players):
+    attached_receivers = get_attached_skill(players)
+    center_x = get_center(players).x
+    attached_receivers_to_left = players_on_side(center_x, attached_receivers, 'LT')
+    attached_receivers_to_right = players_on_side(center_x, attached_receivers, 'RT')
+
+    if attached_receivers_to_left > attached_receivers_to_right:
+        return 'LT'
+    if attached_receivers_to_left < attached_receivers_to_right:
+        return 'RT'
+    return None
+
+
+def get_direction_with_most_detached_receivers(players):
+    detached_receivers = get_detached_skill(players)
+    center_x = get_center(players).x
+    detached_receivers_to_left = players_on_side(center_x, detached_receivers, 'LT')
+    detached_receivers_to_right = players_on_side(center_x, detached_receivers, 'RT')
+
+    if detached_receivers_to_left > detached_receivers_to_right:
+        return 'LT'
+    if detached_receivers_to_left < detached_receivers_to_right:
+        return 'RT'
+    return None
 
 
 if __name__ == '__main__':
@@ -95,18 +174,20 @@ if __name__ == '__main__':
     formation = Formation()
     subformation = formation.subformations['RH_LT']
     subformation.players['S6'].x = 2
+    players = list(subformation.players.values())
 
-    # print(get_offense_players_ordered(subformation))
-    # print(get_offense_players_ordered(subformation, 'left_to_right'))
-    # print(get_los_players_ordered(subformation))
-    # print(get_los_players_ordered(subformation, 'left_to_right'))
-    # print(get_center(subformation))
-    # print(get_line_ordered(subformation))
-    # print(get_backfield_ordered(subformation))
-    # print(get_backfield_ordered(subformation, 'left_to_right'))
-    # print(get_skill_ordered(subformation, 'left_to_right'))
-    print(get_attached_skill(subformation))
-    print(get_detached_skill(subformation))
+    print(get_offense_players_ordered(players))
+    print(get_offense_players_ordered(players, 'left_to_right'))
+    print(get_los_players_ordered(players))
+    print(get_los_players_ordered(players, 'left_to_right'))
+    print(get_center(players))
+    print(get_line_ordered(players))
+    print(get_backfield_ordered(players))
+    print(get_backfield_ordered(players, 'left_to_right'))
+    print(get_skill_ordered(players, 'left_to_right'))
+    print(get_attached_skill(players))
+    print(get_detached_skill(players))
+    print(get_tightends(players, 'left_to_right'))
 
 
 # def get_align_side(direction, align_type, formation):
@@ -139,25 +220,9 @@ if __name__ == '__main__':
 #         else:
 #             return 'LT'
 #
-# def get_direction_with_most_receivers(formation):
-#     receivers_to_left_of_lt = [player for tag, player in formation.players.items() if player.x < formation.lt.x]
-#     receivers_to_right_of_rt = [player for tag, player in formation.players.items() if player.x > formation.rt.x]
+
 #
-#     if len(receivers_to_left_of_lt) > len(receivers_to_right_of_rt):
-#         return 'LT'
-#     if len(receivers_to_left_of_lt) < len(receivers_to_right_of_rt):
-#         return 'RT'
-#     return None
-#
-# def get_direction_with_most_detached_receivers(formation):
-#     attached_receivers_to_left = get_number_of_attached_receivers(formation, 'LT')
-#     attached_receivers_to_right = get_number_of_attached_receivers(formation, 'RT')
-#
-#     if attached_receivers_to_left < attached_receivers_to_right:
-#         return 'LT'
-#     if attached_receivers_to_left > attached_receivers_to_right:
-#         return 'RT'
-#     return None
+
 #
 # def get_direction_with_most_offset_backs(formation):
 #     offset_backs_to_left = get_number_of_offset_backs(formation, 'LT')
