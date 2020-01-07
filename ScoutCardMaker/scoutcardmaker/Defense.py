@@ -94,7 +94,9 @@ if __name__ == '__main__':
 
     formation = Formation()
     subformation = formation.subformations['MOF_RT']
-    defender = Defender('d1')
-    defender.condition_sets[0].set('Puppy and Kitty("john")', 'absolute 30 20')
-    defender.place(subformation)
-    print(defender)
+
+
+    # defender = Defender('d1')
+    # defender.condition_sets[0].set('Puppy and Kitty("john")', 'absolute 30 20')
+    # defender.place(subformation)
+    # print(defender)
