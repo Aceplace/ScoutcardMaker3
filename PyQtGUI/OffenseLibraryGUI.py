@@ -276,14 +276,14 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.cb_s6.setText(f'S6 ( {personnel_mapping["S6"]} )')
 
 
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = OffensiveLibraryEditor()
 
-app = QApplication(sys.argv)
-window = OffensiveLibraryEditor()
+    try:
+        with open('library.json', 'r') as file:
+            window.load_library_from_dict(json.load(file))
+    except FileNotFoundError:
+        pass
 
-try:
-    with open('library.json', 'r') as file:
-        window.load_library_from_dict(json.load(file))
-except FileNotFoundError:
-    pass
-
-sys.exit(app.exec_())
+    sys.exit(app.exec_())

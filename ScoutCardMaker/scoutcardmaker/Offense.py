@@ -22,7 +22,8 @@ class Player:
 
 
 class Subformation:
-    def __init__(self):
+    def __init__(self, hash):
+        assert hash in ['LT', 'RT', 'MOF']
         self.players = {
             'L1': Player('L1', 0, 1),
             'L2': Player('L2', 0, 1),
@@ -36,6 +37,7 @@ class Subformation:
             'S5': Player('S5', 0, 1),
             'S6': Player('S6', 0, 1),
         }
+        self.hash = hash
 
     def copy_from(self, subformation):
         self.players = copy.deepcopy(subformation.players)
@@ -53,17 +55,18 @@ class Subformation:
 
     def __repr__(self):
         player_strings = ',\n'.join(str(player) for player in self.players.values())
-        return f'Subformation(\n[{player_strings}]\n)'
+        return f'Subformation({self.hash}\n[{player_strings}]\n)'
 
     def to_dict(self):
         players_as_dicts = {key: player.to_dict() for (key, player) in self.players.items()}
         return {
+            'hash': self.hash,
             'players': players_as_dicts
         }
 
     @staticmethod
     def from_dict(obj):
-        subformation = Subformation()
+        subformation = Subformation(obj['hash'])
         players_dict = {key: Player(player['tag'], player['x'], player['y']) for (key, player) in obj['players'].items()}
         subformation.players = players_dict
         return subformation
@@ -72,12 +75,12 @@ class Subformation:
 class Formation:
     def __init__(self):
         self.subformations = {
-            'MOF_RT': Subformation(),
-            'LH_RT': Subformation(),
-            'RH_RT': Subformation(),
-            'MOF_LT': Subformation(),
-            'LH_LT': Subformation(),
-            'RH_LT': Subformation(),
+            'MOF_RT': Subformation('MOF'),
+            'LH_RT': Subformation('LT'),
+            'RH_RT': Subformation('RT'),
+            'MOF_LT': Subformation('MOF'),
+            'LH_LT': Subformation('LT'),
+            'RH_LT': Subformation('RT'),
         }
         default_subformations = {'L1': (-8, 1), 'L2': (-4, 1), 'L3': (4, 1), 'L4': (8, 1), 'C': (0, 1),
                                        'S1': (0, 2), 'S2': (0, 7), 'S3': (0, 5), 'S4': (-36, 1), 'S5': (12, 1),
