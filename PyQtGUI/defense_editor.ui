@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OffensiveEditor</class>
- <widget class="QMainWindow" name="OffensiveEditor">
+ <class>DefensiveEditor</class>
+ <widget class="QMainWindow" name="DefensiveEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -410,7 +410,7 @@
   <connection>
    <sender>actionExit</sender>
    <signal>triggered()</signal>
-   <receiver>OffensiveEditor</receiver>
+   <receiver>DefensiveEditor</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
