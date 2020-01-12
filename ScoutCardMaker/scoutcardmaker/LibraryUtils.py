@@ -36,6 +36,6 @@ class PersonnelLabelMapper:
 
     @staticmethod
     def from_dict(obj):
-        label_mapper = PersonnelLabelMapper()
+        label_mapper = PersonnelLabelMapper('offense')
         label_mapper.mappings = obj
         return label_mapper

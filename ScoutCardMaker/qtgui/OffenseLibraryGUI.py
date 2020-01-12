@@ -1,4 +1,4 @@
-from UI_OffensiveEditor import Ui_OffensiveEditor
+from qtgui.UI_OffensiveEditor import Ui_OffensiveEditor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QMessageBox
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt
@@ -46,8 +46,8 @@ class FormationFrame(QFrame):
         self.draw_field(painter, 1, 'Towards Field' if self.can_edit else 'Left Hash')
         self.draw_field(painter, 2, 'Towards Boundary' if self.can_edit else 'Right Hash')
         self.draw_subformation(painter, 0, "MOF_RT")
-        self.draw_subformation(painter, 1, "LH_RT")
-        self.draw_subformation(painter, 2, "RH_RT")
+        self.draw_subformation(painter, 1, "LT_RT")
+        self.draw_subformation(painter, 2, "RT_RT")
 
     def draw_field(self, painter, field_num, field_label):
         top_left = (TOP_LEFT[0], TOP_LEFT[1] + NEXT_FIELD_OFFSET * field_num)
@@ -90,12 +90,12 @@ class FormationFrame(QFrame):
                 self.selected_player = (player, 0)
                 break
 
-        for player in self.formation.subformations["LH_RT"].players.values():
+        for player in self.formation.subformations["LT_RT"].players.values():
             if abs(player.x - x1) <= 1 and player.y == y1:
                 self.selected_player = (player, 1)
                 break
 
-        for player in self.formation.subformations["RH_RT"].players.values():
+        for player in self.formation.subformations["RT_RT"].players.values():
             if abs(player.x - x2) <= 1 and player.y == y2:
                 self.selected_player = (player, 2)
                 break
@@ -161,8 +161,8 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
                 rh_composite = self.formation_library.get_composite_subformation('RH', formation_name)[0]
                 if not mof_composite is None:
                     self.composite_formation.subformations['MOF_RT'].copy_from(mof_composite)
-                    self.composite_formation.subformations['LH_RT'].copy_from(lh_composite)
-                    self.composite_formation.subformations['RH_RT'].copy_from(rh_composite)
+                    self.composite_formation.subformations['LT_RT'].copy_from(lh_composite)
+                    self.composite_formation.subformations['RT_RT'].copy_from(rh_composite)
                     self.formation_frame.update()
         except Exception as e:
             from traceback import format_exc

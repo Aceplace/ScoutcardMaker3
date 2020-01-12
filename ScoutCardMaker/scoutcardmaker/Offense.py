@@ -23,8 +23,8 @@ class Player:
 
 
 class Subformation:
-    def __init__(self, hash):
-        assert hash in ['LT', 'RT', 'MOF']
+    def __init__(self, hash_mark):
+        assert hash_mark in ['LT', 'RT', 'MOF']
         self.players = {
             'L1': Player('L1', 0, 1),
             'L2': Player('L2', 0, 1),
@@ -38,7 +38,7 @@ class Subformation:
             'S5': Player('S5', 0, 1),
             'S6': Player('S6', 0, 1),
         }
-        self.hash = hash
+        self.hash_mark = hash_mark
 
     def copy_from(self, subformation):
         self.players = copy.deepcopy(subformation.players)
@@ -56,18 +56,18 @@ class Subformation:
 
     def __repr__(self):
         player_strings = ',\n'.join(str(player) for player in self.players.values())
-        return f'Subformation({self.hash}\n[{player_strings}]\n)'
+        return f'Subformation({self.hash_mark}\n[{player_strings}]\n)'
 
     def to_dict(self):
         players_as_dicts = {key: player.to_dict() for (key, player) in self.players.items()}
         return {
-            'hash': self.hash,
+            'hash_mark': self.hash_mark,
             'players': players_as_dicts
         }
 
     @staticmethod
     def from_dict(obj):
-        subformation = Subformation(obj['hash'])
+        subformation = Subformation(obj['hash_mark'])
         players_dict = {key: Player(player['tag'], player['x'], player['y']) for (key, player) in obj['players'].items()}
         subformation.players = players_dict
         return subformation
@@ -77,11 +77,11 @@ class Formation:
     def __init__(self):
         self.subformations = {
             'MOF_RT': Subformation('MOF'),
-            'LH_RT': Subformation('LT'),
-            'RH_RT': Subformation('RT'),
+            'LT_RT': Subformation('LT'),
+            'RT_RT': Subformation('RT'),
             'MOF_LT': Subformation('MOF'),
-            'LH_LT': Subformation('LT'),
-            'RH_LT': Subformation('RT'),
+            'LT_LT': Subformation('LT'),
+            'RT_LT': Subformation('RT'),
         }
         default_subformations = {'L1': (-8, 1), 'L2': (-4, 1), 'L3': (4, 1), 'L4': (8, 1), 'C': (0, 1),
                                        'S1': (0, 2), 'S2': (0, 7), 'S3': (0, 5), 'S4': (-36, 1), 'S5': (12, 1),
@@ -94,15 +94,15 @@ class Formation:
                                        'S1': (-18, 2), 'S2': (-18, 7), 'S3': (-18, 5), 'S4': (-44, 1), 'S5': (-6, 1),
                                        'S6': (20, 2)}
         for tag, position in default_subformations.items():
-            self.subformations['LH_RT'].players[tag].x = position[0]
-            self.subformations['LH_RT'].players[tag].y = position[1]
+            self.subformations['LT_RT'].players[tag].x = position[0]
+            self.subformations['LT_RT'].players[tag].y = position[1]
 
         default_subformations = {'L1': (10, 1), 'L2': (14, 1), 'L3': (22, 1), 'L4': (26, 1), 'C': (18, 1),
                                        'S1': (18, 2), 'S2': (18, 7), 'S3': (18, 5), 'S4': (-20, 1), 'S5': (30, 1),
                                        'S6': (44, 2)}
         for tag, position in default_subformations.items():
-            self.subformations['RH_RT'].players[tag].x = position[0]
-            self.subformations['RH_RT'].players[tag].y = position[1]
+            self.subformations['RT_RT'].players[tag].x = position[0]
+            self.subformations['RT_RT'].players[tag].y = position[1]
 
         self.auto_gen_going_left_from_right()
 
@@ -115,10 +115,10 @@ class Formation:
     def auto_gen_going_left_from_right(self):
         self.subformations['MOF_LT'].copy_from(self.subformations['MOF_RT'])
         self.subformations['MOF_LT'].flip()
-        self.subformations['LH_LT'].copy_from(self.subformations['RH_RT'])
-        self.subformations['LH_LT'].flip()
-        self.subformations['RH_LT'].copy_from(self.subformations['LH_RT'])
-        self.subformations['RH_LT'].flip()
+        self.subformations['LT_LT'].copy_from(self.subformations['RT_RT'])
+        self.subformations['LT_LT'].flip()
+        self.subformations['RT_LT'].copy_from(self.subformations['LT_RT'])
+        self.subformations['RT_LT'].flip()
 
     def __repr__(self):
         subformation_strings = ',\n'.join(f'{key}:{item}' for (key,item) in self.subformations.items())
@@ -173,7 +173,7 @@ class OffenseLibrary:
         self.formations[formation_name] = new_formation
         return True
 
-    def get_composite_subformation(self, hash, name):
+    def get_composite_subformation(self, hash_mark, name):
         formation_words = name.strip().upper().split()
         if len(formation_words) < 2:
             return (None, 'Formation name requires at least two words')
@@ -186,8 +186,8 @@ class OffenseLibrary:
         else:
             return (None, 'Formation requires direction')
 
-        subformation_to_return = Subformation()
-        subformation_to_return.copy_from(OffenseLibrary.Default_Formation.subformations[f'{hash}_{formation_direction}'])
+        subformation_to_return = Subformation(hash_mark)
+        subformation_to_return.copy_from(OffenseLibrary.Default_Formation.subformations[f'{hash_mark}_{formation_direction}'])
 
         # start_index = 0
         # current_index = 0
@@ -198,7 +198,7 @@ class OffenseLibrary:
         #         if len(matching_formation_name) == 0:
         #             return (None, f'Formation {name} not found in library.')
         #         else:
-        #             subformation_to_copy = self.formations[matching_formation_name].subformations[f'{hash}_{formation_direction}']
+        #             subformation_to_copy = self.formations[matching_formation_name].subformations[f'{hash_mark}_{formation_direction}']
         #             affected_players = self.formations[matching_formation_name].affected_tags
         #             subformation_to_return.copy_affected(subformation_to_copy, affected_players)
         #             start_index = match_index + 1
@@ -248,7 +248,7 @@ class OffenseLibrary:
                         return (None, f'Formation {name} not found in library.')
 
         for match in matches:
-            subformation_to_copy = self.formations[match].subformations[ f'{hash}_{formation_direction}']
+            subformation_to_copy = self.formations[match].subformations[ f'{hash_mark}_{formation_direction}']
             affected_players = self.formations[match].affected_tags
             subformation_to_return.copy_affected(subformation_to_copy, affected_players)
 

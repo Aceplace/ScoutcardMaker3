@@ -1,4 +1,4 @@
-from UI_DefensiveEditor import Ui_DefensiveEditor
+from qtgui.UI_DefensiveEditor import Ui_DefensiveEditor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QMessageBox
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt
@@ -80,9 +80,14 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.setupUi(self)
         self.formation_library = OffenseLibrary()
         self.selected_personnel_key = "default"
+
         self.current_hash = 'MOF'
-        self.current_offensive_formation = Formation()
-        self.current_subformation = self.current_offensive_formation.subformations['MOF_RT']
+        starting_formation = Formation()
+        self.lh_subformation = starting_formation.subformations['LT_RT']
+        self.rh_subformation = starting_formation.subformations['RT_RT']
+        self.mof_subformation = starting_formation.subformations['MOF_RT']
+        self.current_subformation = self.mof_subformation
+
         self.defense_frame = DefenseFrame(self.current_subformation,
                                           self.formation_library.label_mappers['default'])
         self.scrollArea_2.setWidget(self.defense_frame)
@@ -93,39 +98,46 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.rb_lh.clicked.connect(lambda: self.handle_hash_change('LT'))
         self.rb_rh.clicked.connect(lambda: self.handle_hash_change('RT'))
 
+        self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
+        self.btn_load_composite.clicked.connect(self.handle_get_composite)
+
     def load_offense_library_from_dict(self, library_dict):
         self.formation_library = OffenseLibrary.from_dict(library_dict)
 
-    def handle_hash_change(self, hash):
+    def handle_hash_change(self, hash_mark):
         try:
-            self.current_hash = hash
-            if hash == 'MOF':
-                subformation_key = 'MOF_RT'
+            self.current_hash = hash_mark
+            if hash_mark == 'MOF':
+                self.current_subformation = self.mof_subformation
             else:
-                subformation_key = 'LH_RT' if hash == 'LT' else 'RH_RT'
-            self.current_subformation = self.current_offensive_formation.subformations[subformation_key]
+                self.current_subformation = self.lh_subformation if hash_mark == 'LT' else self.rh_subformation
             self.defense_frame.offensive_subformation = self.current_subformation
             self.defense_frame.update()
         except Exception as e:
             print(str(e))
 
     def handle_get_composite(self):
-        pass
-        # formation_name = self.edit_formation_name.text()
-        # #self.composite_formation = Formation()
-        # try:
-        #     if len(formation_name) > 0:
-        #         mof_composite = self.formation_library.get_composite_subformation('MOF', formation_name)[0]
-        #         lh_composite = self.formation_library.get_composite_subformation('LH', formation_name)[0]
-        #         rh_composite = self.formation_library.get_composite_subformation('RH', formation_name)[0]
-        #         if not mof_composite is None:
-        #             self.composite_formation.subformations['MOF_RT'].copy_from(mof_composite)
-        #             self.composite_formation.subformations['LH_RT'].copy_from(lh_composite)
-        #             self.composite_formation.subformations['RH_RT'].copy_from(rh_composite)
-        #             self.formation_frame.update()
-        # except Exception as e:
-        #     from traceback import format_exc
-        #     print(format_exc())
+        formation_name = self.edit_formation_name.text()
+        try:
+            if len(formation_name) > 0:
+                mof_composite = self.formation_library.get_composite_subformation('MOF', formation_name)[0]
+                lh_composite = self.formation_library.get_composite_subformation('LT', formation_name)[0]
+                rh_composite = self.formation_library.get_composite_subformation('RT', formation_name)[0]
+                if mof_composite is not None:
+                    self.mof_subformation = mof_composite
+                    self.lh_subformation = lh_composite
+                    self.rh_subformation = rh_composite
+
+                    if self.current_hash == 'MOF':
+                        self.current_subformation = self.mof_subformation
+                    else:
+                        self.current_subformation = self.lh_subformation if self.current_hash == 'LT' else self.rh_subformation
+
+                    self.defense_frame.offensive_subformation = self.current_subformation
+                    self.defense_frame.update()
+        except Exception as e:
+            from traceback import format_exc
+            print(format_exc())
 
 
 if __name__ == '__main__':

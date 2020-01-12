@@ -220,14 +220,14 @@ def get_direction_with_most_offset_backs(players):
     return None
 
 
-def get_receiver_strength(players, hash, default_strength='RT'):
+def get_receiver_strength(players, hash_mark, default_strength='RT'):
     direction = get_direction_with_most_receivers(players)
     if direction:
         return direction
 
-    if hash == 'LT':
+    if hash_mark == 'LT':
         return 'RT'
-    elif hash == 'RT':
+    elif hash_mark == 'RT':
         return 'LT'
 
     direction = get_direction_with_most_detached_receivers(formation)
@@ -237,21 +237,21 @@ def get_receiver_strength(players, hash, default_strength='RT'):
     return default_strength
 
 
-def get_back_strength(players, hash, default_strength='RT'):
+def get_back_strength(players, hash_mark, default_strength='RT'):
     direction = get_direction_with_most_offset_backs(players)
     if direction is None:
-        return get_receiver_strength(players, hash, default_strength)
+        return get_receiver_strength(players, hash_mark, default_strength)
     return direction
 
 
-def get_attached_strength(players, hash, default_strength='RT'):
+def get_attached_strength(players, hash_mark, default_strength='RT'):
     direction = get_direction_with_most_attached_receivers(players)
     if direction is None:
-        return get_receiver_strength(players, hash, default_strength)
+        return get_receiver_strength(players, hash_mark, default_strength)
     return direction
 
 
-def get_opposite_attached_and_receiver_strength(players, hash, default_strength='RT'):
+def get_opposite_attached_and_receiver_strength(players, hash_mark, default_strength='RT'):
     attached_receivers_to_left = get_num_attached(players, 'LT')
     attached_receivers_to_right = get_num_attached(players, 'RT')
 
@@ -260,7 +260,7 @@ def get_opposite_attached_and_receiver_strength(players, hash, default_strength=
     if attached_receivers_to_left < attached_receivers_to_right:
         return 'LT'
 
-    return opposite_direction(get_receiver_strength(players, hash, default_strength))
+    return opposite_direction(get_receiver_strength(players, hash_mark, default_strength))
 
 
 def get_receivers_outside_in(players, direction):
@@ -305,25 +305,25 @@ def get_third_attached(players, direction):
     return None
 
 
-def get_align_side(align_type, players, hash):
+def get_align_side(align_type, players, hash_mark):
     if align_type == 'LT' or align_type == 'RT':
         return align_type
 
     if align_type == 'Attached':
-        return get_attached_strength(players, hash)
+        return get_attached_strength(players, hash_mark)
     elif align_type == 'Receiver':
-        return get_receiver_strength(players, hash)
+        return get_receiver_strength(players, hash_mark)
     elif align_type == 'Back':
-        return get_back_strength(players, hash)
+        return get_back_strength(players, hash_mark)
     elif align_type == 'Opposite Attached and Receiver':
-        return get_opposite_attached_and_receiver_strength(players, hash)
+        return get_opposite_attached_and_receiver_strength(players, hash_mark)
     elif align_type == 'Field':
-        if hash == 'RT':
+        if hash_mark == 'RT':
             return 'LT'
         else:
             return 'RT'
     else: # align_type == 'Boundary'
-        if hash == 'LT':
+        if hash_mark == 'LT':
             return 'LT'
         else:
             return 'RT'
@@ -348,7 +348,7 @@ def get_formation_structure(players):
 if __name__ == '__main__':
     from Offense import Formation
     formation = Formation()
-    subformation = formation.subformations['RH_LT']
+    subformation = formation.subformations['RT_LT']
     subformation.players['S6'].x = 2
     players = list(subformation.players.values())
 

@@ -1,0 +1,2 @@
+change formation to use LT/RT instead of LH/RH
+change use of the word hash (shadows python builtin)
