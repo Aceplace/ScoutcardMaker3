@@ -281,9 +281,9 @@ if __name__ == '__main__':
     window = OffensiveLibraryEditor()
 
     try:
-        with open('library.json', 'r') as file:
+        with open('offense_library.json', 'r') as file:
             window.load_library_from_dict(json.load(file))
     except FileNotFoundError:
-        pass
+        print('File not found')
 
     sys.exit(app.exec_())

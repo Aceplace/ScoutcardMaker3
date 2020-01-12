@@ -6,6 +6,8 @@ import sys
 import json
 import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
+from scoutcardmaker.Defense import Defense, DefenseLibrary
+from scoutcardmaker.LibraryUtils import PersonnelLabelMapper
 
 TOP_LEFT = (50, 25)
 HOR_YD_LEN = 10
@@ -28,7 +30,8 @@ class DefenseFrame(QFrame):
         self.setStyleSheet("background-color: white;")
         self.offensive_subformation = subformation
         self.can_edit = True
-        self.personnel_mapper = personnel_mapper
+        self.defense_personnel_mapper = personnel_mapper
+        self.offense_personnel_mapper = PersonnelLabelMapper('offense')
         self.selected_player = None
 
     def paintEvent(self, event):
@@ -69,9 +72,10 @@ class DefenseFrame(QFrame):
                 painter.drawText(off_player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
                                  off_player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
                                  OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1], Qt.AlignCenter,
-                                 self.personnel_mapper.get_label(player.tag))
+                                 self.offense_personnel_mapper.get_label(player.tag))
         except Exception as e:
-            print(str(e))
+            from traceback import format_exc
+            print(format_exc())
 
 
 class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
@@ -79,7 +83,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         super().__init__()
         self.setupUi(self)
         self.formation_library = OffenseLibrary()
-        self.selected_personnel_key = "default"
+        self.defense_library = DefenseLibrary()
 
         self.current_hash = 'MOF'
         starting_formation = Formation()
@@ -101,8 +105,19 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
         self.btn_load_composite.clicked.connect(self.handle_get_composite)
 
+        self.init_label_mappers()
+        self.init_defender_combo(self.defense_library.label_mappers['default'].mappings)
+        self.combo_personnel_grouping.currentIndexChanged[str].connect(self.handle_personnel_change)
+        self.combo_defender_to_edit.currentIndexChanged[str].connect(self.handle_defender_change)
+        self.set_personnel_cb_text(self.defense_library.label_mappers['default'].mappings)
+
+
     def load_offense_library_from_dict(self, library_dict):
         self.formation_library = OffenseLibrary.from_dict(library_dict)
+
+    def load_defense_library_from_dict(self, library_dict):
+        self.defense_library = DefenseLibrary.from_dict(library_dict)
+        self.init_label_mappers()
 
     def handle_hash_change(self, hash_mark):
         try:
@@ -114,7 +129,8 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             self.defense_frame.offensive_subformation = self.current_subformation
             self.defense_frame.update()
         except Exception as e:
-            print(str(e))
+            from traceback import format_exc
+            print(format_exc())
 
     def handle_get_composite(self):
         formation_name = self.edit_formation_name.text()
@@ -139,15 +155,61 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             from traceback import format_exc
             print(format_exc())
 
+    def init_label_mappers(self):
+        # Must block signals because clear sends index changed signal which then references the now empty(null) combo box
+        self.combo_personnel_grouping.blockSignals(True)
+        self.combo_personnel_grouping.clear()
+        self.combo_personnel_grouping.blockSignals(False)
+
+        for personnel_grouping_key in self.defense_library.label_mappers.keys():
+            self.combo_personnel_grouping.addItem(personnel_grouping_key)
+
+    def handle_personnel_change(self, new_personnel):
+        self.defense_frame.personnel_mapper = self.defense_library.label_mappers[new_personnel]
+        self.set_personnel_cb_text(self.defense_library.label_mappers[new_personnel].mappings)
+        self.defense_frame.update()
+
+    def set_personnel_cb_text(self, personnel_mapping):
+        self.cb_d1.setText(f'D1 ( {personnel_mapping["D1"]} )')
+        self.cb_d2.setText(f'D2 ( {personnel_mapping["D2"]} )')
+        self.cb_d3.setText(f'D3 ( {personnel_mapping["D3"]} )')
+        self.cb_d4.setText(f'D4 ( {personnel_mapping["D4"]} )')
+        self.cb_d5.setText(f'D5 ( {personnel_mapping["D5"]} )')
+        self.cb_d6.setText(f'D6 ( {personnel_mapping["D6"]} )')
+        self.cb_d7.setText(f'D7 ( {personnel_mapping["D7"]} )')
+        self.cb_d8.setText(f'D8 ( {personnel_mapping["D8"]} )')
+        self.cb_d9.setText(f'D9 ( {personnel_mapping["D9"]} )')
+        self.cb_d10.setText(f'D10 ( {personnel_mapping["D10"]} )')
+        self.cb_d11.setText(f'D11 ( {personnel_mapping["D11"]} )')
+
+    def init_defender_combo(self, personnel_mapping):
+        # Must block signals because clear sends index changed signal which then references the now empty(null) combo box
+        self.combo_defender_to_edit.blockSignals(True)
+        self.combo_defender_to_edit.clear()
+        self.combo_defender_to_edit.blockSignals(False)
+
+        for defender_tag in ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11']:
+            self.combo_defender_to_edit.addItem(f'{defender_tag} ( {personnel_mapping[defender_tag]} )')
+
+    def handle_defender_change(self, new_defender):
+        print(new_defender)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = DefensiveLibraryEditor()
 
     try:
-        with open('library.json', 'r') as file:
+        with open('offense_library.json', 'r') as file:
             window.load_offense_library_from_dict(json.load(file))
     except FileNotFoundError:
         pass
+
+    try:
+        with open('defense_library.json', 'r') as file:
+            window.load_defense_library_from_dict(json.load(file))
+    except FileNotFoundError:
+        pass
+
 
     sys.exit(app.exec_())

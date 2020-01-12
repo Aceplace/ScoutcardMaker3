@@ -23,7 +23,7 @@ class PersonnelLabelMapper:
                              'D8': 'S',
                              'D9': 'F',
                              'D10': 'C',
-                             '11': 'Q'}
+                             'D11': 'Q'}
 
     def get_label(self, tag):
         return self.mappings[tag]

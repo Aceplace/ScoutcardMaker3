@@ -112,7 +112,7 @@ class Defender:
     @staticmethod
     def from_dict(obj):
         defender = Defender(obj['tag'])
-        condition_sets = [ConditionSet(condition_set['condition_set'], condition_set['placement_rule']) for
+        condition_sets = [ConditionSet(condition_set['condition'], condition_set['placement_rule']) for
                           condition_set in obj['condition_sets']]
         defender.condition_sets = condition_sets
         return defender

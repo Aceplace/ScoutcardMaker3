@@ -7,6 +7,7 @@ def opposite_direction(direction):
         return 'LT'
     return 'RT'
 
+
 def players_ordered(players, direction):
     assert direction in ['right_to_left', 'left_to_right']
     if direction == 'right_to_left':
