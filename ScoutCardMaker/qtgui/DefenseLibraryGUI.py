@@ -1,12 +1,12 @@
 from qtgui.UI_DefensiveEditor import Ui_DefensiveEditor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLineEdit, QWidget, QPushButton, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt
 import sys
 import json
 import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
-from scoutcardmaker.Defense import Defense, DefenseLibrary
+from scoutcardmaker.Defense import Defense, DefenseLibrary, ConditionSet
 from scoutcardmaker.LibraryUtils import PersonnelLabelMapper
 
 TOP_LEFT = (50, 25)
@@ -21,8 +21,87 @@ def clamp(n, smallest, largest):
     return max(smallest, min(n, largest))
 
 
-class DefenseFrame(QFrame):
-    def __init__(self, subformation, personnel_mapper):
+class ConditionSetEditor(QWidget):
+    def __init__(self, index, change_callback, delete_callback, add_callback, condition='', placement_rule=''):
+        super().__init__()
+        self.index = index
+        self.edit_condition = QLineEdit()
+        self.edit_placement_rule = QLineEdit()
+        self.btn_delete_button = QPushButton('x')
+        self.btn_delete_button.setMaximumWidth(32)
+        self.btn_add_button = QPushButton('+')
+        self.btn_add_button .setMaximumWidth(32)
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.edit_condition)
+        layout.addWidget(self.edit_placement_rule)
+        layout.addWidget(self.btn_delete_button)
+        layout.addWidget(self.btn_add_button)
+
+        self.edit_condition.setText(condition)
+        self.edit_placement_rule.setText(placement_rule)
+
+        self.edit_condition.editingFinished.connect(lambda: change_callback(self.index, self.edit_condition.text(), self.edit_placement_rule.text()))
+        self.edit_placement_rule.editingFinished.connect(lambda: change_callback(self.index, self.edit_condition.text(), self.edit_placement_rule.text()))
+
+        self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
+        self.btn_add_button.pressed.connect(add_callback)
+
+
+class DefenderEditor(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.condition_set_editors = []
+        self.defender = None
+        self.layout = None
+        self.layout = QVBoxLayout(self)
+
+    def create_and_layout_condition_set_editors(self, defender):
+        self.defender = defender
+        condition_sets = self.defender.condition_sets
+        for condition_set_editor in self.condition_set_editors:
+            self.layout.removeWidget(condition_set_editor)
+            condition_set_editor.deleteLater()
+
+        self.condition_set_editors = []
+        for index, condition_set in enumerate(condition_sets):
+            condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set, self.add_condition_set,
+                                                      condition_set.condition, condition_set.placement_rule)
+            self.condition_set_editors.append(condition_set_editor)
+            self.layout.addWidget(condition_set_editor)
+
+    def edit_condition_set(self, index, condition, placement_rule):
+        self.defender.condition_sets[index].condition = condition
+        self.defender.condition_sets[index].placement_rule = placement_rule
+
+    def add_condition_set(self):
+        index = len(self.condition_set_editors)
+        condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set, self.add_condition_set,
+                                                  '', '')
+        self.condition_set_editors.append(condition_set_editor)
+        self.layout.addWidget(condition_set_editor)
+        self.defender.condition_sets.append(ConditionSet())
+
+    def delete_condition_set(self, index):
+        if len(self.condition_set_editors) == 1:
+            return
+
+        self.layout.removeWidget(self.condition_set_editors[index])
+        self.condition_set_editors[index].deleteLater()
+        del self.condition_set_editors[index]
+        del self.defender.condition_sets[index]
+
+        for index, condition_set_editor in enumerate(self.condition_set_editors):
+            condition_set_editor.index = index
+
+
+
+
+
+
+
+class DefenseVisualFrame(QFrame):
+    def __init__(self, subformation, defense_personnel_mapper):
         super().__init__()
         self.setGeometry(0,0,600,600)
         self.setMinimumWidth(TOP_LEFT[0] + HOR_YD_LEN * 108 + 20)
@@ -30,7 +109,7 @@ class DefenseFrame(QFrame):
         self.setStyleSheet("background-color: white;")
         self.offensive_subformation = subformation
         self.can_edit = True
-        self.defense_personnel_mapper = personnel_mapper
+        self.defense_personnel_mapper = defense_personnel_mapper
         self.offense_personnel_mapper = PersonnelLabelMapper('offense')
         self.selected_player = None
 
@@ -40,7 +119,6 @@ class DefenseFrame(QFrame):
         painter.setBrush(QBrush(Qt.white))
         self.draw_field(painter)
         self.draw_subformation(painter)
-
 
     def draw_field(self, painter):
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
@@ -60,7 +138,6 @@ class DefenseFrame(QFrame):
                              TOP_LEFT[1] + VER_YD_LEN * 5 * row - HASH_SIZE / 2,
                              TOP_LEFT[0] + HOR_YD_LEN * offset,
                              TOP_LEFT[1] + VER_YD_LEN * 5 * row + HASH_SIZE / 2)
-
 
     def draw_subformation(self, painter):
         try:
@@ -92,10 +169,13 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.mof_subformation = starting_formation.subformations['MOF_RT']
         self.current_subformation = self.mof_subformation
 
-        self.defense_frame = DefenseFrame(self.current_subformation,
-                                          self.formation_library.label_mappers['default'])
-        self.scrollArea_2.setWidget(self.defense_frame)
-        self.show()
+        self.defense_frame = DefenseVisualFrame(self.current_subformation, self.formation_library.label_mappers['default'])
+        self.scroll_field.setWidget(self.defense_frame)
+
+        self.current_defense = Defense()
+        self.defender_editor = DefenderEditor()
+        self.scroll_defender_edit.setWidget(self.defender_editor)
+        self.defender_editor.create_and_layout_condition_set_editors(self.current_defense.players['D1'])
 
         self.rb_mof.setChecked(True)
         self.rb_mof.clicked.connect(lambda: self.handle_hash_change('MOF'))
@@ -110,6 +190,8 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.combo_personnel_grouping.currentIndexChanged[str].connect(self.handle_personnel_change)
         self.combo_defender_to_edit.currentIndexChanged[str].connect(self.handle_defender_change)
         self.set_personnel_cb_text(self.defense_library.label_mappers['default'].mappings)
+
+        self.show()
 
 
     def load_offense_library_from_dict(self, library_dict):
@@ -192,7 +274,9 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             self.combo_defender_to_edit.addItem(f'{defender_tag} ( {personnel_mapping[defender_tag]} )')
 
     def handle_defender_change(self, new_defender):
-        print(new_defender)
+        new_defender_tag = new_defender.split()[0]
+        current_defender = self.current_defense.players[new_defender_tag]
+        self.defender_editor.create_and_layout_condition_set_editors(current_defender)
 
 
 if __name__ == '__main__':
