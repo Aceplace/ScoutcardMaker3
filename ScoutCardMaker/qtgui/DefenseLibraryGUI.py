@@ -1,5 +1,6 @@
 from qtgui.UI_DefensiveEditor import Ui_DefensiveEditor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLineEdit, QWidget, QPushButton, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLineEdit, QWidget, QPushButton, QHBoxLayout, \
+    QVBoxLayout, QMessageBox
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt
 import sys
@@ -169,30 +170,34 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.mof_subformation = starting_formation.subformations['MOF_RT']
         self.current_subformation = self.mof_subformation
 
-        self.defense_frame = DefenseVisualFrame(self.current_subformation, self.formation_library.label_mappers['default'])
-        self.scroll_field.setWidget(self.defense_frame)
-
-        self.current_defense = Defense()
+        self.modifying_defense = Defense()
         self.defender_editor = DefenderEditor()
         self.scroll_defender_edit.setWidget(self.defender_editor)
-        self.defender_editor.create_and_layout_condition_set_editors(self.current_defense.players['D1'])
-
-        self.rb_mof.setChecked(True)
-        self.rb_mof.clicked.connect(lambda: self.handle_hash_change('MOF'))
-        self.rb_lh.clicked.connect(lambda: self.handle_hash_change('LT'))
-        self.rb_rh.clicked.connect(lambda: self.handle_hash_change('RT'))
-
-        self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
-        self.btn_load_composite.clicked.connect(self.handle_get_composite)
+        self.defender_editor.create_and_layout_condition_set_editors(self.modifying_defense.players['D1'])
 
         self.init_label_mappers()
         self.init_defender_combo(self.defense_library.label_mappers['default'].mappings)
         self.combo_personnel_grouping.currentIndexChanged[str].connect(self.handle_personnel_change)
         self.combo_defender_to_edit.currentIndexChanged[str].connect(self.handle_defender_change)
         self.set_personnel_cb_text(self.defense_library.label_mappers['default'].mappings)
+        self.btn_save_defense.clicked.connect(self.handle_save_defense)
+        self.edit_defense_name.returnPressed.connect(self.handle_save_defense)
+        self.list_defenses.itemClicked.connect(self.handle_defense_clicked)
+
+        self.defense_frame = DefenseVisualFrame(self.current_subformation,
+                                                self.formation_library.label_mappers['default'])
+        self.scroll_field.setWidget(self.defense_frame)
+
+        self.rb_mof.setChecked(True)
+        self.rb_mof.clicked.connect(lambda: self.handle_hash_change('MOF'))
+        self.rb_lh.clicked.connect(lambda: self.handle_hash_change('LT'))
+        self.rb_rh.clicked.connect(lambda: self.handle_hash_change('RT'))
+        self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
+        self.btn_load_composite.clicked.connect(self.handle_get_composite)
+
+
 
         self.show()
-
 
     def load_offense_library_from_dict(self, library_dict):
         self.formation_library = OffenseLibrary.from_dict(library_dict)
@@ -200,6 +205,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
     def load_defense_library_from_dict(self, library_dict):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
         self.init_label_mappers()
+        self.load_defense_names_into_list()
 
     def handle_hash_change(self, hash_mark):
         try:
@@ -275,8 +281,85 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
 
     def handle_defender_change(self, new_defender):
         new_defender_tag = new_defender.split()[0]
-        current_defender = self.current_defense.players[new_defender_tag]
+        current_defender = self.modifying_defense.players[new_defender_tag]
         self.defender_editor.create_and_layout_condition_set_editors(current_defender)
+
+    def handle_save_defense(self):
+        defense_name = self.edit_defense_name.text()
+        if len(defense_name) == 0:
+            msg_box = QMessageBox()
+            msg_box.setText('Defense needs name')
+            msg_box.setWindowTitle('Error')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.exec_()
+            return
+
+        affected_tags = []
+        if self.cb_d1.isChecked():
+            affected_tags.append('D1')
+        if self.cb_d2.isChecked():
+            affected_tags.append('D2')
+        if self.cb_d3.isChecked():
+            affected_tags.append('D3')
+        if self.cb_d4.isChecked():
+            affected_tags.append('D4')
+        if self.cb_d5.isChecked():
+            affected_tags.append('D5')
+        if self.cb_d6.isChecked():
+            affected_tags.append('D6')
+        if self.cb_d7.isChecked():
+            affected_tags.append('D7')
+        if self.cb_d8.isChecked():
+            affected_tags.append('D8')
+        if self.cb_d9.isChecked():
+            affected_tags.append('D9')
+        if self.cb_d10.isChecked():
+            affected_tags.append('D10')
+        if self.cb_d11.isChecked():
+            affected_tags.append('D11')
+
+        self.modifying_defense.affected_tags = affected_tags
+        self.defense_library.save_defense(self.modifying_defense, defense_name)
+        self.load_defense_names_into_list()
+
+    def handle_delete_formation(self):
+        if self.list_defenses.currentItem():
+            defense_name = self.list_defenses.currentItem().text()
+
+            del self.defense_library.defenses[defense_name]
+            self.load_defense_names_into_list()
+
+    def load_defense_names_into_list(self):
+        defense_names = [name for name in self.defense_library.defenses.keys()]
+        defense_names.sort()
+        self.list_defenses.clear()
+
+        for defense_name in defense_names:
+            self.list_defenses.addItem(defense_name)
+
+    def handle_defense_clicked(self, defense_clicked):
+        defense_name = defense_clicked.data(0)
+        self.edit_defense_name.setText(defense_name)
+        self.modifying_defense.copy_from(self.defense_library.defenses[defense_name])
+
+        self.cb_d1.setChecked(True if 'D1' in self.modifying_defense.affected_tags else False)
+        self.cb_d2.setChecked(True if 'D2' in self.modifying_defense.affected_tags else False)
+        self.cb_d3.setChecked(True if 'D3' in self.modifying_defense.affected_tags else False)
+        self.cb_d4.setChecked(True if 'D4' in self.modifying_defense.affected_tags else False)
+        self.cb_d5.setChecked(True if 'D5' in self.modifying_defense.affected_tags else False)
+        self.cb_d6.setChecked(True if 'D6' in self.modifying_defense.affected_tags else False)
+        self.cb_d7.setChecked(True if 'D7' in self.modifying_defense.affected_tags else False)
+        self.cb_d8.setChecked(True if 'D8' in self.modifying_defense.affected_tags else False)
+        self.cb_d9.setChecked(True if 'D9' in self.modifying_defense.affected_tags else False)
+        self.cb_d10.setChecked(True if 'D10' in self.modifying_defense.affected_tags else False)
+        self.cb_d11.setChecked(True if 'D11' in self.modifying_defense.affected_tags else False)
+
+        self.combo_defender_to_edit.setCurrentIndex(0)
+        self.handle_defender_change('D1')
+
+    def handle_save_defense_library(self):
+        with open('defense_library.json', 'w') as file:
+            json.dump(self.defense_library.to_dict(), file, indent=3)
 
 
 if __name__ == '__main__':

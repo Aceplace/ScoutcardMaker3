@@ -137,6 +137,7 @@ class Defense:
 
     def copy_from(self, defense):
         self.players = copy.deepcopy(defense.players)
+        self.affected_tags = copy.deepcopy(defense.affected_tags)
 
     def copy_affected(self, defense, affected_player_tags):
         for key, player in self.players.items():
