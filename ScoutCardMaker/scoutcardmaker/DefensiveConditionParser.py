@@ -251,12 +251,17 @@ def validate_node(node, expected_evaluate_type, formation_function_info):
             return False, f'{node.function_name} doesn\'t exist'
 
         function_arguments = formation_function_info[node.function_name][1]
+        string_argument_possibilities = formation_function_info[node.function_name][2]
+
         if len(node.argument_list) != len(function_arguments):
             return False, f'{node.function_name} number of arguments mismatch'
 
-        for argument_node, expected_argument_type in zip(node.argument_list, function_arguments):
+        for argument_node, expected_argument_type, string_argument_possibilities in zip(node.argument_list, function_arguments, string_argument_possibilities):
             if argument_node.literal_type != expected_argument_type:
                 return False, f'{node.function_name} argument mismatch'
+            if argument_node.literal_type == 'string' and len(string_argument_possibilities) > 0 \
+                    and argument_node.value not in string_argument_possibilities:
+                return False, f'{argument_node.value} is not a valid string input'
 
         function_return_type = formation_function_info[node.function_name][0]
         if function_return_type != expected_evaluate_type:
@@ -298,3 +303,24 @@ def validate_node(node, expected_evaluate_type, formation_function_info):
         if expected_evaluate_type != 'bool':
             return False, f'"not" produces bool when {expected_evaluate_type} expected'
         return validate_node(node.node_to_not, 'bool')
+
+
+def validate_placement_rule(name, arguments, placement_rule_info):
+    if name not in placement_rule_info:
+        return False, f'{name} is not a placement rule'
+
+    if len(arguments) != len(placement_rule_info):
+        return False, f'{name} number of arguments mismatch'
+
+    for argument, expected_argument, string_argument_possibilities in zip(arguments, placement_rule_info[0], placement_rule_info[1]):
+        if expected_argument == 'int':
+            try:
+                int(argument)
+            except ValueError:
+                return False, f'{argument} was expected to be an integer'
+        else:
+            if len(string_argument_possibilities) > 0 and argument not in string_argument_possibilities:
+                return False, f'{argument} is not a valid string input'
+        return True, None
+
+    return True, None

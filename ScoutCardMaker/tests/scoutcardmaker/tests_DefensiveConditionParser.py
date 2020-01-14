@@ -1,5 +1,5 @@
 import unittest
-from DefensiveConditionParser import condition_parser, validate_node
+from DefensiveConditionParser import condition_parser, validate_node, placement_parser, validate_placement_rule
 
 
 class TestParseValidator(unittest.TestCase):
@@ -19,12 +19,16 @@ class TestParseValidator(unittest.TestCase):
         ('func2() = 10 and func3(11) = "joe"', True, None),
         ('(func2() = 10 and func3(11) = "joe") or func2()', False, 'func2 returns number when bool expected'),
         ('(func2() = 10 and func3(11) = "joe") or func1(13, "oh my")', True, None),
+        ('func4("debby", 10, "joe")', True, None),
+        ('func4("caesar", 10, "tom")', True, None),
+        ('func4("lala", 10, "tom")', False, 'lala is not a valid string input'),
     ]
 
     formation_function_info = {
-        'func1': ('bool', ('number', 'string')),
-        'func2': ('number', ()),
-        'func3': ('string', ('number',)),
+        'func1': ('bool', ('number', 'string'), ((), ())),
+        'func2': ('number', (), ()),
+        'func3': ('string', ('number',), ((),)),
+        'func4': ('bool', ('string', 'number', 'string'), (('debby', 'caesar'), (), ()))
     }
 
     def test_validate_node(self):
@@ -67,6 +71,27 @@ class TestEvaluate(unittest.TestCase):
                 root = condition_parser.parse(input_and_expected_output[0])
                 output = root.evaluate(None, TestEvaluate.formation_function_map)
                 self.assertEqual((input_and_expected_output[0], output), (input_and_expected_output[0], input_and_expected_output[1]))
+
+
+
+class TestPlacementValidator(unittest.TestCase):
+    inputs_and_expected_outputs = [
+        ('rule_doesnt_exist blah', False, 'rule_doesnt_exist is not a placement rule'),
+    ]
+
+    placement_rule_info = {
+        'rule_1': ((),()),
+        'rule_2': ((),()),
+        'rule_3': ((),()),
+    }
+
+    def test_evaluate(self):
+        for input_and_expected_output in TestPlacementValidator.inputs_and_expected_outputs:
+            with self.subTest():
+                parsed_placement_rule = placement_parser.parse(input_and_expected_output[0])
+                output = validate_placement_rule(parsed_placement_rule[0], parsed_placement_rule[1], TestPlacementValidator.placement_rule_info)
+                self.assertEqual((input_and_expected_output[0], output[0], output[1]),
+                                 (input_and_expected_output[0], input_and_expected_output[1], input_and_expected_output[2]))
 
 
 if __name__ == '__main__':
