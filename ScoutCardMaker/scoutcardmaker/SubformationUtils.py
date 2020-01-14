@@ -306,19 +306,19 @@ def get_third_attached(players, direction):
     return None
 
 
-def get_align_side(align_type, players, hash_mark):
-    if align_type == 'LT' or align_type == 'RT':
-        return align_type
+def get_side(side_type, players, hash_mark):
+    if side_type in ['LT', 'lt', 'Lt', 'RT', 'rt', 'Rt']:
+        return side_type.upper()
 
-    if align_type == 'Attached':
+    if side_type == 'Attached':
         return get_attached_strength(players, hash_mark)
-    elif align_type == 'Receiver':
+    elif side_type == 'Receiver':
         return get_receiver_strength(players, hash_mark)
-    elif align_type == 'Back':
+    elif side_type == 'Back':
         return get_back_strength(players, hash_mark)
-    elif align_type == 'Opposite Attached and Receiver':
+    elif side_type == 'Opposite Attached and Receiver':
         return get_opposite_attached_and_receiver_strength(players, hash_mark)
-    elif align_type == 'Field':
+    elif side_type == 'Field':
         if hash_mark == 'RT':
             return 'LT'
         else:
@@ -344,6 +344,32 @@ def get_formation_structure(players):
     if (receivers_to_left == 3 and receivers_to_right == 2) or (receivers_to_left == 2 and receivers_to_right == 3):
         return '3x2'
     return '4x1'
+
+
+def get_surface_structure(players, direction):
+    number_of_receivers = get_num_receivers(players, direction)
+    number_of_attached_receivers = get_num_attached(players, direction)
+
+    if number_of_receivers == 1 and number_of_attached_receivers == 1:
+        return 'Nub'
+    if number_of_receivers == 1 and number_of_attached_receivers == 0:
+        return 'Split'
+
+    if number_of_receivers == 2 and number_of_attached_receivers == 0:
+        return 'Twin'
+    if number_of_receivers == 2 and number_of_attached_receivers == 1:
+        return 'Pro'
+    if number_of_receivers == 2 and number_of_attached_receivers == 2:
+        return 'Wing'
+
+    if number_of_receivers == 3 and number_of_attached_receivers == 0:
+        return 'Trips'
+    if number_of_receivers == 3 and number_of_attached_receivers == 1:
+        return 'Indy'
+    if number_of_receivers == 3 and number_of_attached_receivers == 2:
+        return 'Indy Wing'
+    #if number_of_receivers == 3 and number_of_attached_receivers == 3:
+    return 'Tight Bunch'
 
 
 if __name__ == '__main__':
