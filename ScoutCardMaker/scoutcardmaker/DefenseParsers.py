@@ -245,6 +245,49 @@ class PlacementParser:
 placement_parser = PlacementParser()
 
 
+class DefensiveValidator:
+    def __init__(self, formation_function_info, placement_rule_info):
+        self.formation_function_info = formation_function_info
+        self.placement_rule_info = placement_rule_info
+        self.success = False
+        self.error_message = None
+
+    def validate_condition(self, condition):
+        try:
+            root_node = condition_parser.parse(condition)
+        except ValueError:
+            self.success = False
+            self.error_message = 'parse error'
+            return False
+
+        node_validation = validate_node(root_node, 'bool', self.formation_function_info)
+        if not node_validation[0]:
+            self.success = False
+            self.error_message = node_validation[1]
+            return False
+
+        self.success = True
+        self.error_message = None
+        return True
+
+    def validate_placement_rule(self, placement_rule):
+        placement_rule_name, placement_rule_arguments = placement_parser.parse(placement_rule)
+        if placement_rule_name == '':
+            self.success = True
+            self.error_message = None
+            return True
+
+        placement_validation = validate_placement_rule(placement_rule_name, placement_rule_arguments, self.placement_rule_info)
+        if not placement_validation[0]:
+            self.success = False
+            self.error_message = placement_validation[1]
+            return False
+
+        self.success = True
+        self.error_message = None
+        return True
+
+
 def validate_node(node, expected_evaluate_type, formation_function_info):
     if isinstance(node, FunctionNode):
         if node.function_name not in formation_function_info:
@@ -309,10 +352,10 @@ def validate_placement_rule(name, arguments, placement_rule_info):
     if name not in placement_rule_info:
         return False, f'{name} is not a placement rule'
 
-    if len(arguments) != len(placement_rule_info):
+    if len(arguments) != len(placement_rule_info[name][1]):
         return False, f'{name} number of arguments mismatch'
 
-    for argument, expected_argument, string_argument_possibilities in zip(arguments, placement_rule_info[0], placement_rule_info[1]):
+    for argument, expected_argument, string_argument_possibilities in zip(arguments, placement_rule_info[name][0], placement_rule_info[name][1]):
         if expected_argument == 'int':
             try:
                 int(argument)
@@ -321,6 +364,4 @@ def validate_placement_rule(name, arguments, placement_rule_info):
         else:
             if len(string_argument_possibilities) > 0 and argument not in string_argument_possibilities:
                 return False, f'{argument} is not a valid string input'
-        return True, None
-
     return True, None

@@ -1,5 +1,5 @@
 import unittest
-from DefensiveConditionParser import condition_parser, validate_node, placement_parser, validate_placement_rule
+from DefenseParsers import condition_parser, validate_node, placement_parser, validate_placement_rule, DefensiveValidator
 
 
 class TestParseValidator(unittest.TestCase):
@@ -31,12 +31,30 @@ class TestParseValidator(unittest.TestCase):
         'func4': ('bool', ('string', 'number', 'string'), (('debby', 'caesar'), (), ()))
     }
 
+    def setUp(self):
+        self.validator = DefensiveValidator(TestParseValidator.formation_function_info, None)
+
     def test_validate_node(self):
         for input_and_expected_output in TestParseValidator.inputs_and_expected_outputs:
             with self.subTest():
                 output = validate_node(condition_parser.parse(input_and_expected_output[0]), 'bool', TestParseValidator.formation_function_info)
                 self.assertEqual(output[0], input_and_expected_output[1])
                 self.assertEqual(output[1], input_and_expected_output[2])
+
+    def test_validator(self):
+        for input_and_expected_output in TestParseValidator.inputs_and_expected_outputs:
+            with self.subTest():
+                output = self.validator.validate_condition(input_and_expected_output[0])
+                self.assertEqual(output, input_and_expected_output[1])
+                self.assertEqual(self.validator.success, input_and_expected_output[1])
+                self.assertEqual(self.validator.error_message, input_and_expected_output[2])
+
+    def test_parse_error(self):
+        condition = 'func4("lala", 10, "tom"))'
+        output = self.validator.validate_condition(condition)
+        self.assertEqual(output, self.validator.success)
+        self.assertEqual(self.validator.success, False)
+        self.assertEqual(self.validator.error_message, 'parse error')
 
 
 class TestEvaluate(unittest.TestCase):
@@ -73,17 +91,28 @@ class TestEvaluate(unittest.TestCase):
                 self.assertEqual((input_and_expected_output[0], output), (input_and_expected_output[0], input_and_expected_output[1]))
 
 
-
 class TestPlacementValidator(unittest.TestCase):
     inputs_and_expected_outputs = [
         ('rule_doesnt_exist blah', False, 'rule_doesnt_exist is not a placement rule'),
+        ('rule_1 10 joe', True, None),
+        ('rule_1 10.5 joe', False, '10.5 was expected to be an integer'),
+        ('rule_2 joe mac', False, 'rule_2 number of arguments mismatch'),
+        ('rule_2 joe', True, None),
+        ('rule_2 bob', True, None),
+        ('rule_2 kelly', True, None),
+        ('rule_2 john', False, 'john is not a valid string input'),
+        ('rule_3 jim is kate', True, None),
+        ('rule_3 jim is joe', False, 'joe is not a valid string input'),
     ]
 
     placement_rule_info = {
-        'rule_1': ((),()),
-        'rule_2': ((),()),
-        'rule_3': ((),()),
+        'rule_1': (('int', 'string'),((), ())),
+        'rule_2': (('string',), (('bob', 'joe', 'kelly'),)),
+        'rule_3': (('string', 'string', 'string'), (('jim',), (), ('kate', 'tim'))),
     }
+
+    def setUp(self):
+        self.validator = DefensiveValidator(None, TestPlacementValidator.placement_rule_info)
 
     def test_evaluate(self):
         for input_and_expected_output in TestPlacementValidator.inputs_and_expected_outputs:
@@ -92,6 +121,14 @@ class TestPlacementValidator(unittest.TestCase):
                 output = validate_placement_rule(parsed_placement_rule[0], parsed_placement_rule[1], TestPlacementValidator.placement_rule_info)
                 self.assertEqual((input_and_expected_output[0], output[0], output[1]),
                                  (input_and_expected_output[0], input_and_expected_output[1], input_and_expected_output[2]))
+
+    def test_validator(self):
+        for input_and_expected_output in TestPlacementValidator.inputs_and_expected_outputs:
+            with self.subTest():
+                output = self.validator.validate_placement_rule(input_and_expected_output[0])
+                self.assertEqual(output, input_and_expected_output[1])
+                self.assertEqual(self.validator.success, input_and_expected_output[1])
+                self.assertEqual(self.validator.error_message, input_and_expected_output[2])
 
 
 if __name__ == '__main__':
