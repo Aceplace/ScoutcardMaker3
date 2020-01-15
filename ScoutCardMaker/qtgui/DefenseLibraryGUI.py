@@ -8,7 +8,7 @@ import json
 import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
 from scoutcardmaker.Defense import Defense, DefenseLibrary, ConditionSet
-from scoutcardmaker.Utils import PersonnelLabelMapper
+from scoutcardmaker.Utils import PersonnelLabelMapper, INVALID_POSITION
 from scoutcardmaker.FormationFunctions import formation_function_info
 from scoutcardmaker.PlacementRules import placement_rule_info
 from scoutcardmaker.DefenseParsers import DefensiveValidator
@@ -180,6 +180,8 @@ class DefenseVisualFrame(QFrame):
             if defender.tag not in self.defense.affected_tags:
                 continue
             defender.place(self.offensive_subformation)
+            if defender.placed_x == INVALID_POSITION[0] and defender.placed_y == INVALID_POSITION[1]:
+                continue
             painter.drawText(player_start[0] + defender.placed_x * HOR_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
                              player_start[1] - defender.placed_y * VER_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
                              DEF_PLAYER_SIZE[0], DEF_PLAYER_SIZE[1], Qt.AlignCenter,
