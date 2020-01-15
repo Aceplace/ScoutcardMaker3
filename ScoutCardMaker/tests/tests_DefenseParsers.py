@@ -22,6 +22,14 @@ class TestParseValidator(unittest.TestCase):
         ('func4("debby", 10, "joe")', True, None),
         ('func4("caesar", 10, "tom")', True, None),
         ('func4("lala", 10, "tom")', False, 'lala is not a valid string input'),
+        ('', True, None),
+        ('"lala", 10, "tom"))', False, 'parse error'),
+        ('2 < 2 and', False, 'parse error'),
+
+    ]
+
+    inputs_should_produce_parse_error = [
+        'func4("lala", 10, "tom"))',
     ]
 
     formation_function_info = {
@@ -37,7 +45,11 @@ class TestParseValidator(unittest.TestCase):
     def test_validate_node(self):
         for input_and_expected_output in TestParseValidator.inputs_and_expected_outputs:
             with self.subTest():
-                output = validate_node(condition_parser.parse(input_and_expected_output[0]), 'bool', TestParseValidator.formation_function_info)
+                success, root = condition_parser.parse(input_and_expected_output[0])
+                if success:
+                    output = validate_node(root, 'bool', TestParseValidator.formation_function_info)
+                else:
+                    output = success, root
                 self.assertEqual(output[0], input_and_expected_output[1])
                 self.assertEqual(output[1], input_and_expected_output[2])
 
@@ -86,7 +98,7 @@ class TestEvaluate(unittest.TestCase):
     def test_evaluate(self):
         for input_and_expected_output in TestEvaluate.inputs_and_expected_outputs:
             with self.subTest():
-                root = condition_parser.parse(input_and_expected_output[0])
+                success, root = condition_parser.parse(input_and_expected_output[0])
                 output = root.evaluate(None, TestEvaluate.formation_function_map)
                 self.assertEqual((input_and_expected_output[0], output), (input_and_expected_output[0], input_and_expected_output[1]))
 
@@ -103,6 +115,7 @@ class TestPlacementValidator(unittest.TestCase):
         ('rule_2 john', False, 'john is not a valid string input'),
         ('rule_3 jim is kate', True, None),
         ('rule_3 jim is joe', False, 'joe is not a valid string input'),
+        ('', True, None),
     ]
 
     placement_rule_info = {
@@ -114,7 +127,7 @@ class TestPlacementValidator(unittest.TestCase):
     def setUp(self):
         self.validator = DefensiveValidator(None, TestPlacementValidator.placement_rule_info)
 
-    def test_evaluate(self):
+    def test_validate_placement_rule(self):
         for input_and_expected_output in TestPlacementValidator.inputs_and_expected_outputs:
             with self.subTest():
                 parsed_placement_rule = placement_parser.parse(input_and_expected_output[0])

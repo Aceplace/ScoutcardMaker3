@@ -226,12 +226,27 @@ def p_argument_string(p):
     p[0] = LiteralNode(p[1], 'string')
 
 
+def p_empty_expression(p):
+    '''expression :'''
+    p[0] = LiteralNode(True, 'bool')
+
+
 def p_error(p):
     raise ValueError('Parse Error')
 
 
-condition_parser = yacc.yacc()
+yacc_parser = yacc.yacc()
 
+class ConditionParser:
+    @staticmethod
+    def parse(str_to_parse):
+        try:
+            output = yacc_parser.parse(str_to_parse)
+            return (True, output)
+        except ValueError:
+            return (False, 'parse error')
+
+condition_parser = ConditionParser()
 
 class PlacementParser:
     @staticmethod
@@ -253,9 +268,8 @@ class DefensiveValidator:
         self.error_message = None
 
     def validate_condition(self, condition):
-        try:
-            root_node = condition_parser.parse(condition)
-        except ValueError:
+        success, root_node = condition_parser.parse(condition)
+        if not success:
             self.success = False
             self.error_message = 'parse error'
             return False
@@ -349,6 +363,9 @@ def validate_node(node, expected_evaluate_type, formation_function_info):
 
 
 def validate_placement_rule(name, arguments, placement_rule_info):
+    if name == '':
+        return True, None
+
     if name not in placement_rule_info:
         return False, f'{name} is not a placement rule'
 
