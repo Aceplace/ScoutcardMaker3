@@ -154,6 +154,16 @@ token_value_bin_op_map = {
 }
 
 
+def p_condition_statement_expression(p):
+    '''condition_statement  : expression'''
+    p[0] = p[1]
+
+
+def p_condition_statement_empty(p):
+    '''condition_statement  :'''
+    p[0] = LiteralNode(True, 'bool')
+
+
 def p_expression_bin(p):
     '''expression   : expression AND expression
                     | expression OR expression'''
@@ -224,11 +234,6 @@ def p_argument_number(p):
 def p_argument_string(p):
     '''argument : STRING'''
     p[0] = LiteralNode(p[1], 'string')
-
-
-def p_empty_expression(p):
-    '''expression :'''
-    p[0] = LiteralNode(True, 'bool')
 
 
 def p_error(p):
