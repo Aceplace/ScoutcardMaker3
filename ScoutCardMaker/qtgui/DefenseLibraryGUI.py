@@ -9,6 +9,9 @@ import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
 from scoutcardmaker.Defense import Defense, DefenseLibrary, ConditionSet
 from scoutcardmaker.LibraryUtils import PersonnelLabelMapper
+from scoutcardmaker.FormationFunctions import formation_function_info
+from scoutcardmaker.PlacementRules import placement_rule_info
+from scoutcardmaker.DefenseParsers import DefensiveValidator
 
 TOP_LEFT = (50, 25)
 HOR_YD_LEN = 10
@@ -50,12 +53,14 @@ class ConditionSetEditor(QWidget):
 
 
 class DefenderEditor(QWidget):
-    def __init__(self):
+    def __init__(self, status_bar):
         super().__init__()
+        self.status_bar = status_bar
         self.condition_set_editors = []
         self.defender = None
         self.layout = None
         self.layout = QVBoxLayout(self)
+        self.validator = DefensiveValidator(formation_function_info, placement_rule_info)
 
     def create_and_layout_condition_set_editors(self, defender):
         self.defender = defender
@@ -72,8 +77,20 @@ class DefenderEditor(QWidget):
             self.layout.addWidget(condition_set_editor)
 
     def edit_condition_set(self, index, condition, placement_rule):
+        #validate
+        invalid = False
+        if not self.validator.validate_condition(condition):
+            self.status_bar.showMessage(f'Condition Validation Error: {self.validator.error_message}', 7000)
+            condition = ''
+            invalid = True
+        if not self.validator.validate_placement_rule(placement_rule):
+            self.status_bar.showMessage(f'Placement Rule Validation Error: {self.validator.error_message}', 7000)
+            placement_rule = ''
+            invalid = True
+
         self.defender.condition_sets[index].condition = condition
         self.defender.condition_sets[index].placement_rule = placement_rule
+        self.condition_set_editors[index].setStyleSheet(f'color: {"red" if invalid else "green"}')
 
     def add_condition_set(self):
         index = len(self.condition_set_editors)
@@ -94,11 +111,6 @@ class DefenderEditor(QWidget):
 
         for index, condition_set_editor in enumerate(self.condition_set_editors):
             condition_set_editor.index = index
-
-
-
-
-
 
 
 class DefenseVisualFrame(QFrame):
@@ -171,7 +183,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.current_subformation = self.mof_subformation
 
         self.modifying_defense = Defense()
-        self.defender_editor = DefenderEditor()
+        self.defender_editor = DefenderEditor(self.statusBar())
         self.scroll_defender_edit.setWidget(self.defender_editor)
         self.defender_editor.create_and_layout_condition_set_editors(self.modifying_defense.players['D1'])
 
@@ -195,7 +207,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
         self.btn_load_composite.clicked.connect(self.handle_get_composite)
 
-
+        self.actionSave_Library.triggered.connect(self.handle_save_library)
 
         self.show()
 
@@ -206,6 +218,10 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
         self.init_label_mappers()
         self.load_defense_names_into_list()
+
+    def handle_save_library(self):
+        with open('defense_library.json', 'w') as file:
+            json.dump(self.defense_library.to_dict(), file, indent=3)
 
     def handle_hash_change(self, hash_mark):
         try:

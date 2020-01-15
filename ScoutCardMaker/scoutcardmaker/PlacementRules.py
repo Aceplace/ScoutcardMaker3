@@ -1,4 +1,4 @@
-from Defense import PlacementInfo
+from Defense import PlacementInfo, INVALID_POSITION
 
 
 def absolute(subformation, arguments):
@@ -40,4 +40,13 @@ def tech_alignment(subformation, arguments):
 placement_rules = {
     'absolute': absolute,
     'tech_alignment': tech_alignment
+}
+
+possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'Opposite Attached and Receiver', 'Field', 'Boundary')
+possible_alignments = ('0', '1', '2i', '2', '3', '3', '4i', '4', '5', '6i', '6', '7', '8i', '8', '9')
+possible_bool = ('True', 'False')
+
+placement_rule_info = {
+    'absolute': (('int', 'int'), ((), ())),
+    'tech_alignment': (('string', 'string', 'int', 'string'), (possible_side_types, possible_alignments, (), possible_bool))
 }
