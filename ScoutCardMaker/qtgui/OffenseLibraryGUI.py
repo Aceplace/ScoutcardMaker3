@@ -246,7 +246,7 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.cb_s6.setChecked(True if 'S6' in self.modifying_formation.affected_tags else False)
 
     def handle_save_library(self):
-        with open('library.json', 'w') as file:
+        with open('offense_library.json', 'w') as file:
             json.dump(self.formation_library.to_dict(), file, indent=3)
 
     def load_library_from_dict(self, library_dict):

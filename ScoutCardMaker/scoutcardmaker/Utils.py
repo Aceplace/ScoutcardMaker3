@@ -39,3 +39,5 @@ class PersonnelLabelMapper:
         label_mapper = PersonnelLabelMapper('offense')
         label_mapper.mappings = obj
         return label_mapper
+
+INVALID_POSITION = (-100, -100)

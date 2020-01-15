@@ -1,32 +1,12 @@
-from DefensiveConditionParser import condition_parser, placement_parser
+from DefenseParsers import condition_parser, placement_parser
+from FormationFunctions import formation_function_map
+from PlacementRules import placement_rules
 from Offense import Formation
-from LibraryUtils import PersonnelLabelMapper
+from Utils import PersonnelLabelMapper, INVALID_POSITION
 import copy
 
-INVALID_POSITION = (-100, -100)
-
-class ConditionInfo:
-    def __init__(self, success, value, error_message):
-        self.success = success
-        self.value = value
-        self.error_message = error_message
-
-    def __repr__(self):
-        return f'ConditionInfo({(self.success, self.value, self.error_message)})'
-
-class PlacementInfo:
-    def __init__(self, success, position, error_message=None):
-        self.success = success
-        self.position = position
-        self.error_message = error_message
-
-    def __repr__(self):
-        return f'PlacementInfo({(self.success, self.position, self.error_message)})'
 
 class ConditionSet:
-    placement_rule_map = None
-    condition_function_map = None
-
     def __init__(self, condition='', placement_rule=''):
         self.condition = condition
         self.placement_rule = placement_rule
@@ -36,28 +16,14 @@ class ConditionSet:
         self.placement_rule = placement_rule
 
     def evaluate_condition(self, subformation):
-        # assert ConditionSet.condition_function_map, 'No condition function mapping specified'
-
-        if len(self.condition) == 0:
-            return ConditionInfo(True, True, None)
-
-        try:
-            parsed_condition_tree = condition_parser.parse(self.condition)
-        except ValueError as e:
-            return ConditionInfo(False, False, f'Parse error:{e}')
-
-        return ConditionInfo(True, True, None)
+        success, root = condition_parser.parse(self.condition)
+        return root.evaluate(subformation, formation_function_map)
 
     def get_placement(self, subformation):
-        assert ConditionSet.placement_rule_map,  'No placement rule mapping specified'
-
-        parsed_placement_rule = placement_parser.parse(self.placement_rule)
-        placement_rule_name = parsed_placement_rule[0]
-        arguments = parsed_placement_rule[1]
-        try:
-            return placement_rules[placement_rule_name](subformation, arguments)
-        except KeyError:
-            return PlacementInfo(False, None, f'Placement Rule "{placement_rule_name}" doesn\'t exist')
+        if self.placement_rule == '':
+            return INVALID_POSITION
+        placement_rule_name, arguments = placement_parser.parse(self.placement_rule)
+        return placement_rules[placement_rule_name](subformation, arguments)
 
     def __repr__(self):
         return f'CondSet({self.condition}, {self.placement_rule})'
@@ -84,18 +50,9 @@ class Defender:
 
     def place(self, subformation):
         for condition_set in self.condition_sets:
-            condition_info = condition_set.evaluate_condition(subformation)
-            if not condition_info.success:
-                print(f'Couldn\t evaluate condition: {condition_info.error_message}')
-                continue
-            if condition_info.value:
-                placement_info = condition_set.get_placement(subformation)
-                if placement_info.success:
-                    self.placed_x, self.placed_y = placement_info.position
-                    return
-                else:
-                    print(f'Couldn\'t place: {placement_info.error_message}')
-                    break
+            if condition_set.evaluate_condition(subformation):
+                self.placed_x, self.placed_y = condition_set.get_placement(subformation)
+                return
         self.placed_x, self.placed_y = INVALID_POSITION
 
     def __repr__(self):

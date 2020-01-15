@@ -1,5 +1,5 @@
 import copy
-from LibraryUtils import PersonnelLabelMapper
+from Utils import PersonnelLabelMapper
 
 class Player:
     def __init__(self, tag, x, y):

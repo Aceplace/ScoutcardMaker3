@@ -1,14 +1,14 @@
 from qtgui.UI_DefensiveEditor import Ui_DefensiveEditor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLineEdit, QWidget, QPushButton, QHBoxLayout, \
     QVBoxLayout, QMessageBox
-from PyQt5.QtGui import QPainter, QPen, QBrush
+from PyQt5.QtGui import QPainter, QPen, QBrush, QFont
 from PyQt5.QtCore import Qt
 import sys
 import json
 import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
 from scoutcardmaker.Defense import Defense, DefenseLibrary, ConditionSet
-from scoutcardmaker.LibraryUtils import PersonnelLabelMapper
+from scoutcardmaker.Utils import PersonnelLabelMapper
 from scoutcardmaker.FormationFunctions import formation_function_info
 from scoutcardmaker.PlacementRules import placement_rule_info
 from scoutcardmaker.DefenseParsers import DefensiveValidator
@@ -17,8 +17,9 @@ TOP_LEFT = (50, 25)
 HOR_YD_LEN = 10
 VER_YD_LEN = 22
 HASH_SIZE = 6
-OFF_PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1] + VER_YD_LEN * 15)
+PLAYER_START = (TOP_LEFT[0] + HOR_YD_LEN * 54, TOP_LEFT[1] + VER_YD_LEN * 15)
 OFF_PLAYER_SIZE = (27, 18)
+DEF_PLAYER_SIZE = (30, 30)
 
 
 def clamp(n, smallest, largest):
@@ -53,9 +54,10 @@ class ConditionSetEditor(QWidget):
 
 
 class DefenderEditor(QWidget):
-    def __init__(self, status_bar):
+    def __init__(self, status_bar, defense_visual_frame):
         super().__init__()
         self.status_bar = status_bar
+        self.defense_visual_frame = defense_visual_frame
         self.condition_set_editors = []
         self.defender = None
         self.layout = None
@@ -77,7 +79,6 @@ class DefenderEditor(QWidget):
             self.layout.addWidget(condition_set_editor)
 
     def edit_condition_set(self, index, condition, placement_rule):
-        #validate
         invalid = False
         if not self.validator.validate_condition(condition):
             self.status_bar.showMessage(f'Condition Validation Error: {self.validator.error_message}', 7000)
@@ -91,6 +92,7 @@ class DefenderEditor(QWidget):
         self.defender.condition_sets[index].condition = condition
         self.defender.condition_sets[index].placement_rule = placement_rule
         self.condition_set_editors[index].setStyleSheet(f'color: {"red" if invalid else "green"}')
+        self.defense_visual_frame.update()
 
     def add_condition_set(self):
         index = len(self.condition_set_editors)
@@ -99,6 +101,8 @@ class DefenderEditor(QWidget):
         self.condition_set_editors.append(condition_set_editor)
         self.layout.addWidget(condition_set_editor)
         self.defender.condition_sets.append(ConditionSet())
+        self.defense_visual_frame.update()
+
 
     def delete_condition_set(self, index):
         if len(self.condition_set_editors) == 1:
@@ -111,27 +115,34 @@ class DefenderEditor(QWidget):
 
         for index, condition_set_editor in enumerate(self.condition_set_editors):
             condition_set_editor.index = index
+        self.defense_visual_frame.update()
 
 
 class DefenseVisualFrame(QFrame):
-    def __init__(self, subformation, defense_personnel_mapper):
+    def __init__(self, subformation, defense, defense_personnel_mapper):
         super().__init__()
         self.setGeometry(0,0,600,600)
         self.setMinimumWidth(TOP_LEFT[0] + HOR_YD_LEN * 108 + 20)
         self.setMinimumHeight(TOP_LEFT[1] + VER_YD_LEN * 39 + 20)
         self.setStyleSheet("background-color: white;")
+
         self.offensive_subformation = subformation
-        self.can_edit = True
+        self.defense = defense
         self.defense_personnel_mapper = defense_personnel_mapper
         self.offense_personnel_mapper = PersonnelLabelMapper('offense')
-        self.selected_player = None
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
         painter.setBrush(QBrush(Qt.white))
         self.draw_field(painter)
+        font = QFont()
+        font.setPixelSize(14)
+        painter.setFont(font)
         self.draw_subformation(painter)
+        font.setPixelSize(24)
+        painter.setFont(font)
+        self.draw_defense(painter)
 
     def draw_field(self, painter):
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
@@ -153,19 +164,26 @@ class DefenseVisualFrame(QFrame):
                              TOP_LEFT[1] + VER_YD_LEN * 5 * row + HASH_SIZE / 2)
 
     def draw_subformation(self, painter):
-        try:
-            off_player_start = (OFF_PLAYER_START[0], OFF_PLAYER_START[1])
-            for player in self.offensive_subformation.players.values():
-                painter.drawEllipse(off_player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
-                                    off_player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
-                                    OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1])
-                painter.drawText(off_player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
-                                 off_player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
-                                 OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1], Qt.AlignCenter,
-                                 self.offense_personnel_mapper.get_label(player.tag))
-        except Exception as e:
-            from traceback import format_exc
-            print(format_exc())
+        player_start = (PLAYER_START[0], PLAYER_START[1])
+        for player in self.offensive_subformation.players.values():
+            painter.drawEllipse(player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
+                                player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
+                                OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1])
+            painter.drawText(player_start[0] + player.x * HOR_YD_LEN - OFF_PLAYER_SIZE[0] / 2,
+                             player_start[1] + player.y * VER_YD_LEN - OFF_PLAYER_SIZE[1] / 2,
+                             OFF_PLAYER_SIZE[0], OFF_PLAYER_SIZE[1], Qt.AlignCenter,
+                             self.offense_personnel_mapper.get_label(player.tag))
+
+    def draw_defense(self, painter):
+        player_start = (PLAYER_START[0], PLAYER_START[1])
+        for defender in self.defense.players.values():
+            if defender.tag not in self.defense.affected_tags:
+                continue
+            defender.place(self.offensive_subformation)
+            painter.drawText(player_start[0] + defender.placed_x * HOR_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
+                             player_start[1] - defender.placed_y * VER_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
+                             DEF_PLAYER_SIZE[0], DEF_PLAYER_SIZE[1], Qt.AlignCenter,
+                             self.defense_personnel_mapper.get_label(defender.tag))
 
 
 class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
@@ -183,7 +201,10 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.current_subformation = self.mof_subformation
 
         self.modifying_defense = Defense()
-        self.defender_editor = DefenderEditor(self.statusBar())
+        self.defense_visual_frame = DefenseVisualFrame(self.current_subformation, self.modifying_defense,
+                                                       self.defense_library.label_mappers['default'])
+        self.scroll_field.setWidget(self.defense_visual_frame)
+        self.defender_editor = DefenderEditor(self.statusBar(), self.defense_visual_frame)
         self.scroll_defender_edit.setWidget(self.defender_editor)
         self.defender_editor.create_and_layout_condition_set_editors(self.modifying_defense.players['D1'])
 
@@ -196,10 +217,6 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.edit_defense_name.returnPressed.connect(self.handle_save_defense)
         self.list_defenses.itemClicked.connect(self.handle_defense_clicked)
 
-        self.defense_frame = DefenseVisualFrame(self.current_subformation,
-                                                self.formation_library.label_mappers['default'])
-        self.scroll_field.setWidget(self.defense_frame)
-
         self.rb_mof.setChecked(True)
         self.rb_mof.clicked.connect(lambda: self.handle_hash_change('MOF'))
         self.rb_lh.clicked.connect(lambda: self.handle_hash_change('LT'))
@@ -207,8 +224,19 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.edit_formation_name.returnPressed.connect(self.handle_get_composite)
         self.btn_load_composite.clicked.connect(self.handle_get_composite)
 
-        self.actionSave_Library.triggered.connect(self.handle_save_library)
+        self.cb_d1.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d2.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d3.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d4.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d5.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d6.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d7.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d8.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d9.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d10.clicked.connect(self.handle_cb_affected_tag_clicked)
+        self.cb_d11.clicked.connect(self.handle_cb_affected_tag_clicked)
 
+        self.actionSave_Library.triggered.connect(self.handle_save_library)
         self.show()
 
     def load_offense_library_from_dict(self, library_dict):
@@ -230,8 +258,8 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
                 self.current_subformation = self.mof_subformation
             else:
                 self.current_subformation = self.lh_subformation if hash_mark == 'LT' else self.rh_subformation
-            self.defense_frame.offensive_subformation = self.current_subformation
-            self.defense_frame.update()
+            self.defense_visual_frame.offensive_subformation = self.current_subformation
+            self.defense_visual_frame.update()
         except Exception as e:
             from traceback import format_exc
             print(format_exc())
@@ -253,8 +281,8 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
                     else:
                         self.current_subformation = self.lh_subformation if self.current_hash == 'LT' else self.rh_subformation
 
-                    self.defense_frame.offensive_subformation = self.current_subformation
-                    self.defense_frame.update()
+                    self.defense_visual_frame.offensive_subformation = self.current_subformation
+                    self.defense_visual_frame.update()
         except Exception as e:
             from traceback import format_exc
             print(format_exc())
@@ -269,9 +297,9 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             self.combo_personnel_grouping.addItem(personnel_grouping_key)
 
     def handle_personnel_change(self, new_personnel):
-        self.defense_frame.personnel_mapper = self.defense_library.label_mappers[new_personnel]
+        self.defense_visual_frame.personnel_mapper = self.defense_library.label_mappers[new_personnel]
         self.set_personnel_cb_text(self.defense_library.label_mappers[new_personnel].mappings)
-        self.defense_frame.update()
+        self.defense_visual_frame.update()
 
     def set_personnel_cb_text(self, personnel_mapping):
         self.cb_d1.setText(f'D1 ( {personnel_mapping["D1"]} )')
@@ -300,16 +328,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         current_defender = self.modifying_defense.players[new_defender_tag]
         self.defender_editor.create_and_layout_condition_set_editors(current_defender)
 
-    def handle_save_defense(self):
-        defense_name = self.edit_defense_name.text()
-        if len(defense_name) == 0:
-            msg_box = QMessageBox()
-            msg_box.setText('Defense needs name')
-            msg_box.setWindowTitle('Error')
-            msg_box.setStandardButtons(QMessageBox.Ok)
-            msg_box.exec_()
-            return
-
+    def handle_cb_affected_tag_clicked(self, ):
         affected_tags = []
         if self.cb_d1.isChecked():
             affected_tags.append('D1')
@@ -335,6 +354,18 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             affected_tags.append('D11')
 
         self.modifying_defense.affected_tags = affected_tags
+        self.defense_visual_frame.update()
+
+    def handle_save_defense(self):
+        defense_name = self.edit_defense_name.text()
+        if len(defense_name) == 0:
+            msg_box = QMessageBox()
+            msg_box.setText('Defense needs name')
+            msg_box.setWindowTitle('Error')
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.exec_()
+            return
+
         self.defense_library.save_defense(self.modifying_defense, defense_name)
         self.load_defense_names_into_list()
 
@@ -372,6 +403,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
 
         self.combo_defender_to_edit.setCurrentIndex(0)
         self.handle_defender_change('D1')
+        self.defense_visual_frame.update()
 
     def handle_save_defense_library(self):
         with open('defense_library.json', 'w') as file:
