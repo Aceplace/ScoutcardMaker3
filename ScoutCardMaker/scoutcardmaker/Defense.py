@@ -17,13 +17,24 @@ class ConditionSet:
 
     def evaluate_condition(self, subformation):
         success, root = condition_parser.parse(self.condition)
-        return root.evaluate(subformation, formation_function_map)
+        try:
+            return root.evaluate(subformation, formation_function_map)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return False
 
     def get_placement(self, subformation):
         if self.placement_rule == '':
             return INVALID_POSITION
         placement_rule_name, arguments = placement_parser.parse(self.placement_rule)
-        return placement_rules[placement_rule_name](subformation, arguments)
+        try:
+            return placement_rules[placement_rule_name](subformation, arguments)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return INVALID_POSITION
+
 
     def __repr__(self):
         return f'CondSet({self.condition}, {self.placement_rule})'

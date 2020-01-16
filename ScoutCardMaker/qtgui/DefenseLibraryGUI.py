@@ -182,10 +182,14 @@ class DefenseVisualFrame(QFrame):
             defender.place(self.offensive_subformation)
             if defender.placed_x == INVALID_POSITION[0] and defender.placed_y == INVALID_POSITION[1]:
                 continue
-            painter.drawText(player_start[0] + defender.placed_x * HOR_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
-                             player_start[1] - defender.placed_y * VER_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
-                             DEF_PLAYER_SIZE[0], DEF_PLAYER_SIZE[1], Qt.AlignCenter,
-                             self.defense_personnel_mapper.get_label(defender.tag))
+            try:
+                painter.drawText(player_start[0] + defender.placed_x * HOR_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
+                                 player_start[1] - defender.placed_y * VER_YD_LEN - DEF_PLAYER_SIZE[0] / 2,
+                                 DEF_PLAYER_SIZE[0], DEF_PLAYER_SIZE[1], Qt.AlignCenter,
+                                 self.defense_personnel_mapper.get_label(defender.tag))
+            except Exception:
+                import traceback
+                traceback.print_exc()
 
 
 class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):

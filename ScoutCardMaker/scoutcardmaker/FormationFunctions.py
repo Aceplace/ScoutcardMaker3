@@ -2,27 +2,27 @@ import SubformationUtils as su
 
 
 def formation_structure(subformation):
-    return su.get_formation_structure(subformation.players)
+    return su.get_formation_structure(list(subformation.players.values))
 
 
 def num_receivers(subformation, side_type):
-    side = su.get_side(side_type, subformation.players, subformation.hash_mark)
-    return su.get_num_receivers(subformation.players, side)
+    side = su.get_side(side_type, list(subformation.players.values), subformation.hash_mark)
+    return su.get_num_receivers(list(subformation.players.values), side)
 
 
 def num_attached(subformation, side_type):
-    side = su.get_side(side_type, subformation.players, subformation.hash_mark)
-    return su.get_num_attached(subformation.players, side)
+    side = su.get_side(side_type, list(subformation.players.values), subformation.hash_mark)
+    return su.get_num_attached(list(subformation.players.values), side)
 
 
 def num_detached(subformation, side_type):
-    side = su.get_side(side_type, subformation.players, subformation.hash_mark)
-    return su.get_num_detached(subformation.players, side)
+    side = su.get_side(side_type, list(subformation.players.values), subformation.hash_mark)
+    return su.get_num_detached(list(subformation.players.values), side)
 
 
 def surface(subformation, side_type):
-    side = su.get_side(side_type, subformation.players, subformation.hash_mark)
-    return su.get_surface_structure(subformation.players, side)
+    side = su.get_side(side_type, list(subformation.players.values), subformation.hash_mark)
+    return su.get_surface_structure(list(subformation.players.values), side)
 
 
 def ball_on_hash(subformation):

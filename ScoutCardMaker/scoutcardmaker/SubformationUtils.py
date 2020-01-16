@@ -1,5 +1,5 @@
-ATTACH_DISTANCE = 6
-GHOST_DISTANCE = 4
+ATTACH_DISTANCE = 3
+GHOST_DISTANCE = 2
 
 def opposite_direction(direction):
     assert direction in ['LT', 'RT']
@@ -185,8 +185,8 @@ def get_num_detached(players, direction):
 def get_direction_with_most_attached_receivers(players):
     attached_receivers = get_attached_skill_ordered(players)
     center_x = get_center(players).x
-    attached_receivers_to_left = players_on_side(center_x, attached_receivers, 'LT')
-    attached_receivers_to_right = players_on_side(center_x, attached_receivers, 'RT')
+    attached_receivers_to_left = len(players_on_side(center_x, attached_receivers, 'LT'))
+    attached_receivers_to_right = len(players_on_side(center_x, attached_receivers, 'RT'))
 
     if attached_receivers_to_left > attached_receivers_to_right:
         return 'LT'
@@ -198,8 +198,8 @@ def get_direction_with_most_attached_receivers(players):
 def get_direction_with_most_detached_receivers(players):
     detached_receivers = get_detached_skill_ordered(players)
     center_x = get_center(players).x
-    detached_receivers_to_left = players_on_side(center_x, detached_receivers, 'LT')
-    detached_receivers_to_right = players_on_side(center_x, detached_receivers, 'RT')
+    detached_receivers_to_left = len(players_on_side(center_x, detached_receivers, 'LT'))
+    detached_receivers_to_right = len(players_on_side(center_x, detached_receivers, 'RT'))
 
     if detached_receivers_to_left > detached_receivers_to_right:
         return 'LT'
@@ -211,8 +211,8 @@ def get_direction_with_most_detached_receivers(players):
 def get_direction_with_most_offset_backs(players):
     backs = get_backfield_ordered(players)
     center_x = get_center(players).x
-    offset_backs_to_left = players_on_side(center_x, backs, 'LT')
-    offset_back_to_right = players_on_side(center_x, backs, 'RT')
+    offset_backs_to_left = len(players_on_side(center_x, backs, 'LT'))
+    offset_back_to_right = len(players_on_side(center_x, backs, 'RT'))
 
     if offset_backs_to_left > offset_back_to_right:
         return 'LT'
@@ -231,7 +231,7 @@ def get_receiver_strength(players, hash_mark, default_strength='RT'):
     elif hash_mark == 'RT':
         return 'LT'
 
-    direction = get_direction_with_most_detached_receivers(formation)
+    direction = get_direction_with_most_detached_receivers(players)
     if direction:
         return direction
 
@@ -316,7 +316,7 @@ def get_side(side_type, players, hash_mark):
         return get_receiver_strength(players, hash_mark)
     elif side_type == 'Back':
         return get_back_strength(players, hash_mark)
-    elif side_type == 'Opposite Attached and Receiver':
+    elif side_type == 'Opposite_Attached_and_Receiver':
         return get_opposite_attached_and_receiver_strength(players, hash_mark)
     elif side_type == 'Field':
         if hash_mark == 'RT':
@@ -372,25 +372,25 @@ def get_surface_structure(players, direction):
     return 'Tight Bunch'
 
 
-if __name__ == '__main__':
-    from Offense import Formation
-    formation = Formation()
-    subformation = formation.subformations['RT_LT']
-    subformation.players['S6'].x = 2
-    players = list(subformation.players.values())
-
-    print(get_offense_players_ordered(players))
-    print(get_offense_players_ordered(players, 'left_to_right'))
-    print(get_los_players_ordered(players))
-    print(get_los_players_ordered(players, 'left_to_right'))
-    print(get_center(players))
-    print(get_line_ordered(players))
-    print(get_backfield_ordered(players))
-    print(get_backfield_ordered(players, 'left_to_right'))
-    print(get_skill_ordered(players, 'left_to_right'))
-    print(get_attached_skill_ordered(players))
-    print(get_detached_skill_ordered(players))
-    print(get_tightends_ordered(players, 'left_to_right'))
+# if __name__ == '__main__':
+#     from Offense import Formation
+#     formation = Formation()
+#     subformation = formation.subformations['RT_LT']
+#     subformation.players['S6'].x = 2
+#     players_to_test = list(subformation.players.values())
+#
+#     print(get_offense_players_ordered(players_to_test))
+#     print(get_offense_players_ordered(players_to_test, 'left_to_right'))
+#     print(get_los_players_ordered(players_to_test))
+#     print(get_los_players_ordered(players_to_test, 'left_to_right'))
+#     print(get_center(players_to_test))
+#     print(get_line_ordered(players_to_test))
+#     print(get_backfield_ordered(players_to_test))
+#     print(get_backfield_ordered(players_to_test, 'left_to_right'))
+#     print(get_skill_ordered(players_to_test, 'left_to_right'))
+#     print(get_attached_skill_ordered(players_to_test))
+#     print(get_detached_skill_ordered(players_to_test))
+#     print(get_tightends_ordered(players_to_test, 'left_to_right'))
 
 
 
