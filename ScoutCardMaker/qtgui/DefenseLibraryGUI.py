@@ -52,7 +52,8 @@ class ConditionSetEditor(QWidget):
         self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
         self.btn_add_button.pressed.connect(add_callback)
 
-
+# todo : Add new condition set anywhere in defender
+# todo : Be able to copy condition sets from other defender easily
 class DefenderEditor(QWidget):
     def __init__(self, status_bar, defense_visual_frame):
         super().__init__()
@@ -220,6 +221,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.combo_defender_to_edit.currentIndexChanged[str].connect(self.handle_defender_change)
         self.set_personnel_cb_text(self.defense_library.label_mappers['default'].mappings)
         self.btn_save_defense.clicked.connect(self.handle_save_defense)
+        self.btn_delete_selected_defense.clicked.connect(self.handle_delete_defense)
         self.edit_defense_name.returnPressed.connect(self.handle_save_defense)
         self.list_defenses.itemClicked.connect(self.handle_defense_clicked)
 
@@ -375,7 +377,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
         self.defense_library.save_defense(self.modifying_defense, defense_name)
         self.load_defense_names_into_list()
 
-    def handle_delete_formation(self):
+    def handle_delete_defense(self):
         if self.list_defenses.currentItem():
             defense_name = self.list_defenses.currentItem().text()
 

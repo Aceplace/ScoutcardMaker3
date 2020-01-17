@@ -159,26 +159,26 @@ def get_direction_with_most_receivers(players):
 
 
 def get_num_offset_backs(players, direction):
-    center_x = get_center(players)
+    center_x = get_center(players).x
     backs = get_backfield_ordered(players)
     return len(players_on_side(center_x, backs, direction))
 
 
 def get_num_receivers(players, direction):
-    center_x = get_center(players)
+    center_x = get_center(players).x
     receivers = get_receivers_ordered(players)
     return len(players_on_side(center_x, receivers, direction))
 
 
 def get_num_attached(players, direction):
-    center_x = get_center(players)
+    center_x = get_center(players).x
     attached = get_attached_skill_ordered(players)
     return len(players_on_side(center_x, attached, direction))
 
 
 def get_num_detached(players, direction):
-    center_x = get_center(players)
-    detached = get_attached_skill_ordered(players)
+    center_x = get_center(players).x
+    detached = get_detached_skill_ordered(players)
     return len(players_on_side(center_x, detached, direction))
 
 

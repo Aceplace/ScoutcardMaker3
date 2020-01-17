@@ -116,6 +116,7 @@ def apex(subformation, arguments):
 
     return x, y
 
+# todo : First open gap
 
 placement_rules = {
     'absolute': absolute,
