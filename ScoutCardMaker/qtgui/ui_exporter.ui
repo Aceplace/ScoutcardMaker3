@@ -34,6 +34,7 @@
      <string>Exports</string>
     </property>
     <addaction name="actionCreate_Scout_Cards"/>
+    <addaction name="actionCreate_Scout_Cards_Alternating"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuExports"/>
@@ -47,6 +48,11 @@
   <action name="actionCreate_Scout_Cards">
    <property name="text">
     <string>Create Scout Cards</string>
+   </property>
+  </action>
+  <action name="actionCreate_Scout_Cards_Alternating">
+   <property name="text">
+    <string>Create Scout Cards Alternating</string>
    </property>
   </action>
  </widget>

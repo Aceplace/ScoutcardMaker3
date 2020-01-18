@@ -280,6 +280,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = OffensiveLibraryEditor()
 
+    window.setWindowTitle('Offense Library Editor')
+
     try:
         with open('offense_library.json', 'r') as file:
             window.load_library_from_dict(json.load(file))

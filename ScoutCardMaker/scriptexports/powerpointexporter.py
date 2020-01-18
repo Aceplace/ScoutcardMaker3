@@ -1,13 +1,10 @@
-import os
-
 from pptx import Presentation
 from pptx.enum.shapes import MSO_CONNECTOR_TYPE, MSO_AUTO_SHAPE_TYPE
 from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT
 from pptx.dml.color import RGBColor
 from pptx.util import Cm, Pt
 
-from misc.adapters import variation_to_defense_compatible_formation, variation_to_visualizer, variation_to_powerpoint
-from misc.exceptions import ExportException, LibraryException
+from scoutcardmaker.Defense import INVALID_POSITION
 
 #Constants for wide view
 CENTER_X_POS = Cm(13.0)
@@ -51,68 +48,65 @@ def player_coordinates_to_powerpoint(player_x, player_y, is_tight_view=False):
         return (TIGHT_CENTER_X_POS + player_x * TIGHT_HORIZONTAL_COORDINATE_SIZE, TIGHT_CENTER_Y_POS + player_y * TIGHT_VERTICAL_COORDINATE_SIZE)
 
 
-def export_to_powerpoint(output_filename, plays, library):
-
+def export_to_powerpoint(output_filename, plays, offense_library, defense_library):
     presentation = Presentation()
 
     #do wide versions first
     for play in plays:
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP, TITLE_WIDTH, TITLE_HEIGHT)
-        text_box.text_frame.text = f'{play["Number"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
+        text_box.text_frame.text = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, library)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library)
 
     # do tight versions after
     for play in plays:
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP, TITLE_WIDTH, TITLE_HEIGHT)
-        text_box.text_frame.text = f'{play["Number"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
+        text_box.text_frame.text = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, library)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library)
 
     presentation.save(output_filename)
 
-def export_to_powerpoint_alternating(output_filename, plays, library):
-
+def export_to_powerpoint_alternating(output_filename, plays, offense_library, defender_library):
     presentation = Presentation()
-
 
     for play in plays:
         # do wide versions first
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP, TITLE_WIDTH, TITLE_HEIGHT)
-        text_box.text_frame.text = f'{play["Number"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
+        text_box.text_frame.text = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, library)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defender_library)
 
         # then tight
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP, TITLE_WIDTH, TITLE_HEIGHT)
-        text_box.text_frame.text = f'{play["Number"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
+        text_box.text_frame.text = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, library)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defender_library)
 
     presentation.save(output_filename)
 
 
-def add_wide_formation_and_defense_slide(play, slide, library):
+def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library):
     #draw sideline
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, LEFT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, RIGHT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
@@ -132,85 +126,92 @@ def add_wide_formation_and_defense_slide(play, slide, library):
     formation_name = play['Card Maker Formation']
     defense_name = play['Card Maker Defense']
 
-    formation = None
-    try:
-        if formation_name:
-            formation = library.get_composite_formation_variation(formation_name, play['Hash'])
-            pp_formation = variation_to_powerpoint(formation)
-            for label, player in pp_formation.players.items():
-                x, y = player_coordinates_to_powerpoint(player.x, player.y)
-                shape = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, x - PLAYER_WIDTH / 2, y - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT)
-                shape.fill.solid()
-                shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
-                shape.line.color.rgb = RGBColor(0, 0, 0)
-                shape.line.width = Pt(1.0)
-                shape.text_frame.text = player.label if len(player.label) != 2 else player.label[1]
-                shape.text_frame.paragraphs[0].font.size = Pt(12)
-                shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
-                shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
+    if formation_name:
+        subformation, error_message = offense_library.get_composite_subformation(play['Hash'], formation_name)
+        if not subformation:
+            return
+        for tag, player in subformation.players.items():
+            try:
+                label = offense_library.label_mappers[play['Personnel']].get_label(tag)
+            except KeyError:
+                label = offense_library.label_mappers['default'].get_label(tag)
+            x, y = player_coordinates_to_powerpoint(player.x, player.y)
+            shape = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, x - PLAYER_WIDTH / 2, y - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT)
+            shape.fill.solid()
+            shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
+            shape.line.color.rgb = RGBColor(0, 0, 0)
+            shape.line.width = Pt(1.0)
+            shape.text_frame.text = label if len(label) != 2 else label[1]
+            shape.text_frame.paragraphs[0].font.size = Pt(12)
+            shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
+            shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
 
-        if formation and defense_name:
-            composite_defense = library.get_composite_defense(defense_name)
-            placed_defense = composite_defense.get_affected_placed_defenders(variation_to_defense_compatible_formation(formation))
-            for (tag, label, defender_x, defender_y) in placed_defense:
-                x, y = player_coordinates_to_powerpoint(defender_x, defender_y * -1)
-                text_box = slide.shapes.add_textbox(x - DEFENDER_WIDTH / 2, y - DEFENDER_HEIGHT / 2, DEFENDER_WIDTH, DEFENDER_HEIGHT)
-                text_box.text_frame.text = label
-                text_box.text_frame.paragraphs[0].font.size = Pt(24)
-    except LibraryException:
-        pass #the only error that can a formation or defendse  doesn't exist
-        #if so, we make a note of it and go to the next card
+    if defense_name:
+        composite_defense = defense_library.get_composite_defense(defense_name)
+        composite_defense.place_defenders(subformation)
+        for tag, defender in composite_defense.players.items():
+            if (defender.placed_x, defender.placed_y) == INVALID_POSITION:
+                continue
+            label = defense_library.label_mappers['default'].get_label(tag)
+            x, y = player_coordinates_to_powerpoint(defender.placed_x, defender.placed_y * -1)
+            text_box = slide.shapes.add_textbox(x - DEFENDER_WIDTH / 2, y - DEFENDER_HEIGHT / 2, DEFENDER_WIDTH, DEFENDER_HEIGHT)
+            text_box.text_frame.text = label
+            text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
-def add_tight_formation_and_defense_slide(play, slide, library):
+
+def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library):
     formation_name = play['Card Maker Formation']
     defense_name = play['Card Maker Defense']
 
     formation = None
-    try:
-        x_min = -25
-        x_max = 25
-        y_max = 8
-        offset = 0
-        if formation_name:
-            formation = library.get_composite_formation_variation(formation_name, play['Hash'])
-            if formation.hash == 'lt':
-                x_min -= 18
-                x_max -= 18
-                offset = 18
-            elif formation.hash == 'rt':
-                x_min += 18
-                x_max += 18
-                offset = -18
-            pp_formation = variation_to_powerpoint(formation)
-            for label, player in pp_formation.players.items():
-                if player.x < x_min or player.x > x_max:
-                    continue
-                x, y = player_coordinates_to_powerpoint(player.x + offset, player.y, is_tight_view=True)
-                shape = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, x - TIGHT_PLAYER_WIDTH / 2, y - TIGHT_PLAYER_HEIGHT / 2,
-                                               TIGHT_PLAYER_WIDTH, TIGHT_PLAYER_HEIGHT)
-                shape.fill.solid()
-                shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
-                shape.line.color.rgb = RGBColor(0, 0, 0)
-                shape.line.width = Pt(1.0)
-                shape.text_frame.text = player.label if len(player.label) != 2 else player.label[1]
-                shape.text_frame.paragraphs[0].font.size = Pt(24)
-                shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
-                shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
+    x_min = -25
+    x_max = 25
+    y_max = 8
+    offset = 0
+    if formation_name:
+        subformation, error_message = offense_library.get_composite_subformation(play['Hash'], formation_name)
+        if not subformation:
+            return
+        if subformation.hash_mark == 'LT':
+            x_min -= 18
+            x_max -= 18
+            offset = 18
+        elif subformation.hash_mark == 'RT':
+            x_min += 18
+            x_max += 18
+            offset = -18
+        for tag, player in subformation.players.items():
+            if player.x < x_min or player.x > x_max:
+                continue
+            x, y = player_coordinates_to_powerpoint(player.x + offset, player.y, is_tight_view=True)
+            try:
+                label = offense_library.label_mappers[play['Personnel']].get_label(tag)
+            except KeyError:
+                label = offense_library.label_mappers['default'].get_label(tag)
+            shape = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, x - TIGHT_PLAYER_WIDTH / 2, y - TIGHT_PLAYER_HEIGHT / 2,
+                                           TIGHT_PLAYER_WIDTH, TIGHT_PLAYER_HEIGHT)
+            shape.fill.solid()
+            shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
+            shape.line.color.rgb = RGBColor(0, 0, 0)
+            shape.line.width = Pt(1.0)
+            shape.text_frame.text = label if len(label) != 2 else label[1]
+            shape.text_frame.paragraphs[0].font.size = Pt(24)
+            shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
+            shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
 
-        if formation and defense_name:
-            composite_defense = library.get_composite_defense(defense_name)
-            placed_defense = composite_defense.get_affected_placed_defenders(variation_to_defense_compatible_formation(formation))
-            for (tag, label, defender_x, defender_y) in placed_defense:
-                if defender_x < x_min or defender_x > x_max or defender_y > y_max:
-                    continue
-                x, y = player_coordinates_to_powerpoint(defender_x + offset, defender_y * -1, is_tight_view=True)
-                text_box = slide.shapes.add_textbox(x - TIGHT_DEFENDER_WIDTH / 2, y - TIGHT_DEFENDER_HEIGHT / 2, TIGHT_DEFENDER_WIDTH,
-                                                    TIGHT_DEFENDER_HEIGHT)
-                text_box.text_frame.text = label
-                text_box.text_frame.paragraphs[0].font.size = Pt(36)
-    except LibraryException:
-        pass #the only error that can occur is a formation or defense doesn't exist
-        #if so, we ignore it and go to the next card
+    if defense_name:
+        composite_defense = defense_library.get_composite_defense(defense_name)
+        composite_defense.place_defenders(subformation)
+        for tag, defender in composite_defense.players.items():
+            if defender.placed_x < x_min or defender.placed_x > x_max or defender.placed_y > y_max:
+                continue
+            x, y = player_coordinates_to_powerpoint(defender.placed_x + offset, defender.placed_y * -1, is_tight_view=True)
+            label = defense_library.label_mappers['default'].get_label(tag)
+            text_box = slide.shapes.add_textbox(x - TIGHT_DEFENDER_WIDTH / 2, y - TIGHT_DEFENDER_HEIGHT / 2, TIGHT_DEFENDER_WIDTH,
+                                                TIGHT_DEFENDER_HEIGHT)
+            text_box.text_frame.text = label
+            text_box.text_frame.paragraphs[0].font.size = Pt(36)
+
 
 
 

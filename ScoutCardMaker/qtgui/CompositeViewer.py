@@ -190,6 +190,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = CompositeViewer()
 
+    window.setWindowTitle('Composite Viewer')
+
     try:
         with open('offense_library.json', 'r') as file:
             window.load_offense_library_from_dict(json.load(file))

@@ -5,6 +5,7 @@ import json
 from scoutcardmaker.Offense import OffenseLibrary
 from scoutcardmaker.Defense import DefenseLibrary
 from scriptexports.excelscriptparser import get_script_from_excel_file
+from scriptexports.powerpointexporter import export_to_powerpoint, export_to_powerpoint_alternating
 
 
 class ExportGUI(QMainWindow, Ui_ExportGui):
@@ -13,7 +14,8 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
         self.setupUi(self)
         self.formation_library = OffenseLibrary()
         self.defense_libary = DefenseLibrary()
-        self.actionCreate_Scout_Cards.triggered.connect(self.handle_create_scout_cards)
+        self.actionCreate_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False))
+        self.actionCreate_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True))
 
         self.show()
 
@@ -23,13 +25,23 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
     def load_defense_library_from_dict(self, library_dict):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
 
-    def handle_create_scout_cards(self):
+    def handle_create_scout_cards(self, alternating):
         try:
             file_name, _ = QFileDialog.getOpenFileName(self, 'Choose Script', 'c:\\', 'Excel File (*.xlsx)')
-            print(file_name)
-            if file_name:
-                script = get_script_from_excel_file(file_name, self.get_sheet_choice_callback)
-                print(script)
+            if not file_name:
+                return
+
+            success, script = get_script_from_excel_file(file_name, self.get_sheet_choice_callback)
+
+            file_name, _ = QFileDialog.getSaveFileName(self, 'Scout Card Filename', 'c:\\', 'Power Point (*.pptx)')
+            if not file_name:
+                return
+
+            if alternating:
+                export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library)
+            else:
+                export_to_powerpoint(file_name, script, self.formation_library, self.defense_library)
+
         except Exception:
             import traceback
             traceback.print_exc()
@@ -52,7 +64,6 @@ class ChooseSheetDialog(QDialog):
         for choice in choices:
             btn = QPushButton(self)
             btn.setText(choice)
-            print(choice)
             btn.clicked.connect(lambda ignore, choice=choice: self.handle_choice(choice))
             vbox.addWidget(btn)
 
@@ -67,6 +78,7 @@ class ChooseSheetDialog(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = ExportGUI()
+    window.setWindowTitle('Script Exporter')
 
     try:
         with open('offense_library.json', 'r') as file:

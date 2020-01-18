@@ -103,6 +103,13 @@ class Defense:
         }
         self.affected_tags = []
 
+    def place_defenders(self, subformation):
+        for player in self.players.values():
+            if player.tag in self.affected_tags:
+                player.place(subformation)
+            else:
+                player.placed_x, player.placed_y = INVALID_POSITION
+
     def copy_from(self, defense):
         self.players = copy.deepcopy(defense.players)
         self.affected_tags = copy.deepcopy(defense.affected_tags)

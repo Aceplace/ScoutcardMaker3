@@ -2,7 +2,6 @@ import traceback
 import xlrd as xl
 
 
-# todo: be able to choose sheets
 def get_script_from_excel_file(file_name, get_sheet_callback=None):
     try:
         work_book = xl.open_workbook(file_name)
@@ -26,7 +25,14 @@ def get_script_from_excel_file(file_name, get_sheet_callback=None):
             except ValueError:
                 play_info['Number'] = row_values[0]
             play_info['Personnel'] = row_values[1]
-            play_info['Hash'] = row_values[2]
+            hash_mark = row_values[2]
+            if hash_mark in ['RT', 'R', 'r', 'rt', 'Rt']:
+                hash_mark = 'RT'
+            elif hash_mark in ['LT', 'L', 'l', 'lt', 'Lt']:
+                hash_mark = 'LT'
+            else:
+                hash_mark = 'MOF'
+            play_info['Hash'] = hash_mark
             play_info['Dnd'] = row_values[3]
             play_info['Formation'] = row_values[4]
             play_info['Play'] = row_values[5]

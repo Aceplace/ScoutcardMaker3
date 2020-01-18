@@ -32,8 +32,11 @@ class Ui_ExportGui(object):
         self.actionExit.setObjectName("actionExit")
         self.actionCreate_Scout_Cards = QtWidgets.QAction(ExportGui)
         self.actionCreate_Scout_Cards.setObjectName("actionCreate_Scout_Cards")
+        self.actionCreate_Scout_Cards_Alternating = QtWidgets.QAction(ExportGui)
+        self.actionCreate_Scout_Cards_Alternating.setObjectName("actionCreate_Scout_Cards_Alternating")
         self.menuFile.addAction(self.actionExit)
         self.menuExports.addAction(self.actionCreate_Scout_Cards)
+        self.menuExports.addAction(self.actionCreate_Scout_Cards_Alternating)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuExports.menuAction())
 
@@ -47,6 +50,7 @@ class Ui_ExportGui(object):
         self.menuExports.setTitle(_translate("ExportGui", "Exports"))
         self.actionExit.setText(_translate("ExportGui", "Exit"))
         self.actionCreate_Scout_Cards.setText(_translate("ExportGui", "Create Scout Cards"))
+        self.actionCreate_Scout_Cards_Alternating.setText(_translate("ExportGui", "Create Scout Cards Alternating"))
 
 
 if __name__ == "__main__":
