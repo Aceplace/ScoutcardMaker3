@@ -194,17 +194,3 @@ class DefenseLibrary:
         library.defenses = {key: Defense.from_dict(item) for (key, item) in obj['defenses'].items()}
         library.label_mappers = {key: PersonnelLabelMapper.from_dict(item) for (key, item) in obj['label_mappers'].items()}
         return library
-
-
-if __name__ == '__main__':
-    from PlacementRules import placement_rules
-    ConditionSet.placement_rule_map = placement_rules
-
-    formation = Formation()
-    subformation = formation.subformations['MOF_RT']
-
-
-    # defender = Defender('d1')
-    # defender.condition_sets[0].set('Puppy and Kitty("john")', 'absolute 30 20')
-    # defender.place(subformation)
-    # print(defender)
