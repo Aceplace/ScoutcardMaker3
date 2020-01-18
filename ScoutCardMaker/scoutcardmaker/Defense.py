@@ -152,15 +152,13 @@ class DefenseLibrary:
     def get_composite_defense(self, name):
         defense_words = name.strip().upper().split()
 
-        defense_to_return = Defense()
-
         matches = []
 
         start_index = 0
         end_index = len(defense_words)
         while start_index < len(defense_words):
             subdefense_name = ' '.join(defense_words[start_index:end_index])
-            if subdefense_name in self.defense:
+            if subdefense_name in self.defenses:
                 matches.append(subdefense_name)
                 start_index = end_index
                 end_index = len(defense_words)
@@ -170,11 +168,13 @@ class DefenseLibrary:
                     start_index += 1
                     end_index = len(defense_words)
 
+        defense_to_return = Defense()
 
         for match in matches:
             subdefense_to_copy = self.defenses[match]
             affected_players = self.defenses[match].affected_tags
             defense_to_return.copy_affected(subdefense_to_copy, affected_players)
+            defense_to_return.affected_tags.extend(tag for tag in self.defenses[match].affected_tags if tag not in defense_to_return.affected_tags)
 
         return defense_to_return
 
