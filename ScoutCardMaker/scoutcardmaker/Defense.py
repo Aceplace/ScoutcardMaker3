@@ -1,7 +1,6 @@
 from DefenseParsers import condition_parser, placement_parser
 from FormationFunctions import formation_function_map
 from PlacementRules import placement_rules
-from Offense import Formation
 from Utils import PersonnelLabelMapper, INVALID_POSITION
 import copy
 

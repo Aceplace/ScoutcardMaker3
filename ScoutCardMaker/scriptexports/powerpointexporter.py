@@ -4,7 +4,7 @@ from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT
 from pptx.dml.color import RGBColor
 from pptx.util import Cm, Pt
 
-from scoutcardmaker.Defense import INVALID_POSITION
+from scoutcardmaker.Utils import INVALID_POSITION
 
 #Constants for wide view
 CENTER_X_POS = Cm(13.0)

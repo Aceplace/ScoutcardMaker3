@@ -34,9 +34,13 @@ class Ui_ExportGui(object):
         self.actionCreate_Scout_Cards.setObjectName("actionCreate_Scout_Cards")
         self.actionCreate_Scout_Cards_Alternating = QtWidgets.QAction(ExportGui)
         self.actionCreate_Scout_Cards_Alternating.setObjectName("actionCreate_Scout_Cards_Alternating")
+        self.actionCreate_Football_Trainer_Script = QtWidgets.QAction(ExportGui)
+        self.actionCreate_Football_Trainer_Script.setObjectName("actionCreate_Football_Trainer_Script")
         self.menuFile.addAction(self.actionExit)
         self.menuExports.addAction(self.actionCreate_Scout_Cards)
         self.menuExports.addAction(self.actionCreate_Scout_Cards_Alternating)
+        self.menuExports.addSeparator()
+        self.menuExports.addAction(self.actionCreate_Football_Trainer_Script)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuExports.menuAction())
 
@@ -51,6 +55,7 @@ class Ui_ExportGui(object):
         self.actionExit.setText(_translate("ExportGui", "Exit"))
         self.actionCreate_Scout_Cards.setText(_translate("ExportGui", "Create Scout Cards"))
         self.actionCreate_Scout_Cards_Alternating.setText(_translate("ExportGui", "Create Scout Cards Alternating"))
+        self.actionCreate_Football_Trainer_Script.setText(_translate("ExportGui", "Create Football Trainer Script"))
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from scoutcardmaker.Offense import OffenseLibrary
 from scoutcardmaker.Defense import DefenseLibrary
 from scriptexports.excelscriptparser import get_script_from_excel_file
 from scriptexports.powerpointexporter import export_to_powerpoint, export_to_powerpoint_alternating
+from scriptexports.footballtrainerscriptexport import export_to_football_trainer
 
 
 class ExportGUI(QMainWindow, Ui_ExportGui):
@@ -16,7 +17,7 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
         self.defense_libary = DefenseLibrary()
         self.actionCreate_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False))
         self.actionCreate_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True))
-
+        self.actionCreate_Football_Trainer_Script.triggered.connect(self.handle_create_football_trainer_script)
         self.show()
 
     def load_offense_library_from_dict(self, library_dict):
@@ -41,6 +42,24 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
                 export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library)
             else:
                 export_to_powerpoint(file_name, script, self.formation_library, self.defense_library)
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def handle_create_football_trainer_script(self, alternating):
+        try:
+            file_name, _ = QFileDialog.getOpenFileName(self, 'Choose Script', 'c:\\', 'Excel File (*.xlsx)')
+            if not file_name:
+                return
+
+            success, script = get_script_from_excel_file(file_name, self.get_sheet_choice_callback)
+
+            file_name, _ = QFileDialog.getSaveFileName(self, 'Trainer Script', 'c:\\', 'JSON (*.json)')
+            if not file_name:
+                return
+
+            export_to_football_trainer(file_name, script, self.formation_library, self.defense_library)
 
         except Exception:
             import traceback
