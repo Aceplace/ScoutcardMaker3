@@ -7,11 +7,9 @@ import sys
 import json
 import itertools
 from scoutcardmaker.Offense import Formation, OffenseLibrary
-from scoutcardmaker.Defense import Defense, DefenseLibrary, ConditionSet
+from scoutcardmaker.Defense import Defense, DefenseLibrary
 from scoutcardmaker.Utils import PersonnelLabelMapper, INVALID_POSITION
-from scoutcardmaker.FormationFunctions import formation_function_info
-from scoutcardmaker.PlacementRules import placement_rule_info
-from scoutcardmaker.DefenseParsers import DefensiveValidator
+
 
 TOP_LEFT = (50, 25)
 HOR_YD_LEN = 10
@@ -185,8 +183,7 @@ class CompositeViewer(QMainWindow, Ui_CompositeViewer):
             print(format_exc())
 
 
-
-if __name__ == '__main__':
+def launch():
     app = QApplication(sys.argv)
     window = CompositeViewer()
 
@@ -204,5 +201,8 @@ if __name__ == '__main__':
     except FileNotFoundError:
         pass
 
-
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    launch()

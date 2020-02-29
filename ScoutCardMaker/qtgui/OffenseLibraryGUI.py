@@ -276,7 +276,7 @@ class OffensiveLibraryEditor(QMainWindow, Ui_OffensiveEditor):
         self.cb_s6.setText(f'S6 ( {personnel_mapping["S6"]} )')
 
 
-if __name__ == '__main__':
+def launch():
     app = QApplication(sys.argv)
     window = OffensiveLibraryEditor()
 
@@ -289,3 +289,6 @@ if __name__ == '__main__':
         print('File not found')
 
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    launch()

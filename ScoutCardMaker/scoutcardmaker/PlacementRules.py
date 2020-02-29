@@ -1,4 +1,4 @@
-from Utils import INVALID_POSITION
+from scoutcardmaker.Utils import INVALID_POSITION
 import scoutcardmaker.SubformationUtils as su
 
 

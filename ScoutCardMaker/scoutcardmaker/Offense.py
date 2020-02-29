@@ -1,5 +1,5 @@
 import copy
-from Utils import PersonnelLabelMapper
+from scoutcardmaker.Utils import PersonnelLabelMapper
 
 class Player:
     def __init__(self, tag, x, y):

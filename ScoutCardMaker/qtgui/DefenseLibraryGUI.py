@@ -418,7 +418,7 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             json.dump(self.defense_library.to_dict(), file, indent=3)
 
 
-if __name__ == '__main__':
+def launch():
     app = QApplication(sys.argv)
     window = DefensiveLibraryEditor()
 
@@ -438,3 +438,6 @@ if __name__ == '__main__':
 
 
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    launch()

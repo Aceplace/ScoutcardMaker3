@@ -93,8 +93,7 @@ class ChooseSheetDialog(QDialog):
         self.accept()
 
 
-
-if __name__ == '__main__':
+def launch():
     app = QApplication(sys.argv)
     window = ExportGUI()
     window.setWindowTitle('Script Exporter')
@@ -112,3 +111,7 @@ if __name__ == '__main__':
         print('Defensive library file not found')
 
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    launch()

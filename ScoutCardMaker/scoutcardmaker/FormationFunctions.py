@@ -1,4 +1,4 @@
-import SubformationUtils as su
+import scoutcardmaker.SubformationUtils as su
 
 
 def formation_structure(subformation):

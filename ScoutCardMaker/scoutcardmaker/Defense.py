@@ -1,7 +1,7 @@
-from DefenseParsers import condition_parser, placement_parser
-from FormationFunctions import formation_function_map
-from PlacementRules import placement_rules
-from Utils import PersonnelLabelMapper, INVALID_POSITION
+from scoutcardmaker.DefenseParsers import condition_parser, placement_parser
+from scoutcardmaker.FormationFunctions import formation_function_map
+from scoutcardmaker.PlacementRules import placement_rules
+from scoutcardmaker.Utils import PersonnelLabelMapper, INVALID_POSITION
 import copy
 
 

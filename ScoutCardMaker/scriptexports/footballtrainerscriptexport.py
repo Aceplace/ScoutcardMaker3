@@ -11,12 +11,23 @@ def export_to_football_trainer(file_name, plays, offense_library, defense_librar
     for play in plays:
         offense_info = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         defense_info = f'{play["Defense"]} --- {play["Note"]}'
+
+
         play_dict = {'offenseInfo': offense_info, 'defenseInfo': defense_info}
         formation_name = play["Card Maker Formation"]
         defense_name = play["Card Maker Defense"]
         subformation, error_message = offense_library.get_composite_subformation(play['Hash'], formation_name)
+
         if not subformation:
             subformation = default_subformation
+
+        if subformation.hash_mark == 'LT':
+            hash_type = 0
+        elif subformation.hash_mark == 'MOF':
+            hash_type = 1
+        else:
+            hash_type = 2
+        play_dict['hashType'] = hash_type
 
         players = []
         for tag, player in subformation.players.items():

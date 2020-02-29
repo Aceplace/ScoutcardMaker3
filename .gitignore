@@ -10,3 +10,7 @@ parser.out
 *.json
 
 ScoutCardMaker/scout_card_maker.egg-info/
+ScoutCardMaker/SCM3Offense.bat
+ScoutCardMaker/SCM3CompositeViewer.bat
+ScoutCardMaker/SCM3Exporter.bat
+ScoutCardMaker/SCM3Defense.bat
