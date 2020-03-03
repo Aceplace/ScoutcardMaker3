@@ -15,8 +15,10 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
         self.setupUi(self)
         self.formation_library = OffenseLibrary()
         self.defense_libary = DefenseLibrary()
-        self.actionCreate_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False))
-        self.actionCreate_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True))
+        self.actionCreate_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False, False))
+        self.actionCreate_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True, False))
+        self.actionOff_Create_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False, True))
+        self.actionOff_Create_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True, True))
         self.actionCreate_Football_Trainer_Script.triggered.connect(self.handle_create_football_trainer_script)
         self.show()
 
@@ -26,7 +28,7 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
     def load_defense_library_from_dict(self, library_dict):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
 
-    def handle_create_scout_cards(self, alternating):
+    def handle_create_scout_cards(self, alternating, offense):
         try:
             file_name, _ = QFileDialog.getOpenFileName(self, 'Choose Script', 'c:\\', 'Excel File (*.xlsx)')
             if not file_name:
@@ -39,9 +41,9 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
                 return
 
             if alternating:
-                export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library)
+                export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library, offense)
             else:
-                export_to_powerpoint(file_name, script, self.formation_library, self.defense_library)
+                export_to_powerpoint(file_name, script, self.formation_library, self.defense_library, offense)
 
         except Exception:
             import traceback

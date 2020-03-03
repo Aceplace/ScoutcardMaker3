@@ -9,6 +9,7 @@ from scoutcardmaker.Utils import INVALID_POSITION
 #Constants for wide view
 CENTER_X_POS = Cm(13.0)
 CENTER_Y_POS = Cm(11.5)
+CENTER_Y_POS_OFF = Cm(8.7)
 HORIZONTAL_COORDINATE_SIZE = Cm(0.23)
 VERTICAL_COORDINATE_SIZE = Cm(0.55)
 PLAYER_WIDTH = Cm(0.65)
@@ -23,6 +24,7 @@ DEFENDER_HEIGHT = Pt(28)
 #constants for tight view
 TIGHT_CENTER_X_POS = Cm(13.0)
 TIGHT_CENTER_Y_POS = Cm(11.0)
+TIGHT_CENTER_Y_POS_OFF = Cm(9.8)
 TIGHT_HORIZONTAL_COORDINATE_SIZE = Cm(0.46)
 TIGHT_VERTICAL_COORDINATE_SIZE = Cm(1.05)
 TIGHT_PLAYER_WIDTH = Cm(1.3)
@@ -41,14 +43,27 @@ RIGHT_BOTTOM_OF_NUMBERS = CENTER_X_POS + HORIZONTAL_COORDINATE_SIZE * 39
 FIVE_YARDS = VERTICAL_COORDINATE_SIZE * 5
 
 
-def player_coordinates_to_powerpoint(player_x, player_y, is_tight_view=False):
-    if not is_tight_view:
-        return (CENTER_X_POS + player_x * HORIZONTAL_COORDINATE_SIZE, CENTER_Y_POS + player_y * VERTICAL_COORDINATE_SIZE)
+def player_coordinates_to_powerpoint(player_x, player_y, is_tight_view, is_for_offense):
+    if is_for_offense:
+        player_x *= -1
+        player_y *= -1
+        if is_tight_view:
+            center_y_pos = TIGHT_CENTER_Y_POS_OFF
+        else:
+            center_y_pos = CENTER_Y_POS_OFF
+    elif is_tight_view:
+        center_y_pos = TIGHT_CENTER_Y_POS
     else:
-        return (TIGHT_CENTER_X_POS + player_x * TIGHT_HORIZONTAL_COORDINATE_SIZE, TIGHT_CENTER_Y_POS + player_y * TIGHT_VERTICAL_COORDINATE_SIZE)
+        center_y_pos = CENTER_Y_POS
 
 
-def export_to_powerpoint(output_filename, plays, offense_library, defense_library):
+    if not is_tight_view:
+        return (CENTER_X_POS + player_x * HORIZONTAL_COORDINATE_SIZE, center_y_pos + player_y * VERTICAL_COORDINATE_SIZE)
+    else:
+        return (TIGHT_CENTER_X_POS + player_x * TIGHT_HORIZONTAL_COORDINATE_SIZE, center_y_pos + player_y * TIGHT_VERTICAL_COORDINATE_SIZE)
+
+
+def export_to_powerpoint(output_filename, plays, offense_library, defense_library, is_for_offense):
     presentation = Presentation()
 
     #do wide versions first
@@ -61,7 +76,7 @@ def export_to_powerpoint(output_filename, plays, offense_library, defense_librar
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense)
 
     # do tight versions after
     for play in plays:
@@ -73,11 +88,11 @@ def export_to_powerpoint(output_filename, plays, offense_library, defense_librar
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense)
 
     presentation.save(output_filename)
 
-def export_to_powerpoint_alternating(output_filename, plays, offense_library, defender_library):
+def export_to_powerpoint_alternating(output_filename, plays, offense_library, defender_library, is_for_offense):
     presentation = Presentation()
 
     for play in plays:
@@ -90,7 +105,7 @@ def export_to_powerpoint_alternating(output_filename, plays, offense_library, de
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, offense_library, defender_library)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense)
 
         # then tight
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
@@ -101,12 +116,12 @@ def export_to_powerpoint_alternating(output_filename, plays, offense_library, de
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, offense_library, defender_library)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense)
 
     presentation.save(output_filename)
 
 
-def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library):
+def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense):
     #draw sideline
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, LEFT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, RIGHT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
@@ -135,7 +150,7 @@ def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_l
                 label = offense_library.label_mappers[play['Personnel']].get_label(tag)
             except KeyError:
                 label = offense_library.label_mappers['default'].get_label(tag)
-            x, y = player_coordinates_to_powerpoint(player.x, player.y)
+            x, y = player_coordinates_to_powerpoint(player.x, player.y, False, is_for_offense)
             shape = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, x - PLAYER_WIDTH / 2, y - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT)
             shape.fill.solid()
             shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
@@ -153,13 +168,13 @@ def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_l
             if (defender.placed_x, defender.placed_y) == INVALID_POSITION:
                 continue
             label = defense_library.label_mappers['default'].get_label(tag)
-            x, y = player_coordinates_to_powerpoint(defender.placed_x, defender.placed_y * -1)
+            x, y = player_coordinates_to_powerpoint(defender.placed_x, defender.placed_y * -1, False, is_for_offense)
             text_box = slide.shapes.add_textbox(x - DEFENDER_WIDTH / 2, y - DEFENDER_HEIGHT / 2, DEFENDER_WIDTH, DEFENDER_HEIGHT)
             text_box.text_frame.text = label
             text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
 
-def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library):
+def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense):
     formation_name = play['Card Maker Formation']
     defense_name = play['Card Maker Defense']
 
@@ -183,7 +198,7 @@ def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_
         for tag, player in subformation.players.items():
             if player.x < x_min or player.x > x_max:
                 continue
-            x, y = player_coordinates_to_powerpoint(player.x + offset, player.y, is_tight_view=True)
+            x, y = player_coordinates_to_powerpoint(player.x + offset, player.y, True, is_for_offense)
             try:
                 label = offense_library.label_mappers[play['Personnel']].get_label(tag)
             except KeyError:
@@ -205,7 +220,7 @@ def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_
         for tag, defender in composite_defense.players.items():
             if defender.placed_x < x_min or defender.placed_x > x_max or defender.placed_y > y_max:
                 continue
-            x, y = player_coordinates_to_powerpoint(defender.placed_x + offset, defender.placed_y * -1, is_tight_view=True)
+            x, y = player_coordinates_to_powerpoint(defender.placed_x + offset, defender.placed_y * -1, True, is_for_offense)
             label = defense_library.label_mappers['default'].get_label(tag)
             text_box = slide.shapes.add_textbox(x - TIGHT_DEFENDER_WIDTH / 2, y - TIGHT_DEFENDER_HEIGHT / 2, TIGHT_DEFENDER_WIDTH,
                                                 TIGHT_DEFENDER_HEIGHT)
