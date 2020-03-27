@@ -102,6 +102,7 @@ class Defense:
         self.affected_tags = []
 
     def place_defenders(self, subformation):
+        self.pass_number = 1
         for player in self.players.values():
             if player.tag in self.affected_tags:
                 player.place(subformation, self)
@@ -109,6 +110,12 @@ class Defense:
                 player.placed_x, player.placed_y = INVALID_POSITION
 
         #peform a second time for placement rules that require a second pass
+        self.pass_number = 2
+        for player in self.players.values():
+            if player.tag in self.affected_tags:
+                player.place(subformation, self)
+            else:
+                player.placed_x, player.placed_y = INVALID_POSITION
 
     def copy_from(self, defense):
         self.players = copy.deepcopy(defense.players)

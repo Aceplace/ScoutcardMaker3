@@ -1,5 +1,5 @@
 import unittest
-from DefenseParsers import condition_parser, validate_node, placement_parser, validate_placement_rule, DefensiveValidator
+from scoutcardmaker.DefenseParsers import condition_parser, validate_node, placement_parser, validate_placement_rule, DefensiveValidator
 
 
 class TestParseValidator(unittest.TestCase):

@@ -118,10 +118,12 @@ def apex(subformation, defense, arguments):
 
 # todo(MikeY) : First open gap
 def first_open_gap(subformation, defense, arguments):
+    if defense.pass_number != 2:
+        return INVALID_POSITION
+
     side_type = arguments[0]
-    alignment = arguments[1]
-    y = int(arguments[2])
-    flip = True if arguments[3] == 'True' else False
+    y = int(arguments[1])
+    flip = True if arguments[2] == 'True' else False
 
     players_list = list(subformation.players.values())
 
@@ -129,40 +131,42 @@ def first_open_gap(subformation, defense, arguments):
     if flip:
         align_side = 'RT' if align_side == 'LT' else 'LT'
 
-    offset = -1 if 'i' in alignment else 1
-    offset = offset if align_side == 'RT' else offset * -1
-    if alignment in ['0', '2', '4', '6', '8']:
-        offset = 0
-    # Get alignment player
-    if alignment in ['0', '1']:
-        align_player = sutils.get_center(players_list)
-    elif alignment in ['2i', '2', '3']:
-        align_player = sutils.get_lg(players_list) if align_side == 'LT' else sutils.get_rg(players_list)
-    elif alignment in ['4i', '4', '5']:
-        align_player = sutils.get_lt(players_list) if align_side == 'LT' else sutils.get_rt(players_list)
-    elif alignment in ['6i', '6', '7']:
-        align_player = sutils.get_first_attached(players_list, 'LT') \
-            if align_side == 'LT' else sutils.get_first_attached(players_list, 'RT')
-        ghost_distance_multiplier = 1
-    elif alignment in ['8i', '8', '9']:
-        align_player = sutils.get_second_attached(players_list, 'LT') \
-            if align_side == 'LT' else sutils.get_second_attached(players_list, 'RT')
-        ghost_distance_multiplier = 2
+    inside_lineman_x = sutils.get_center(players_list).x
+    if align_side == 'RT':
+        outside_lineman_x = sutils.get_rg(players_list).x
+        if not is_a_defender_between(defense, inside_lineman_x, outside_lineman_x, 5):
+            return (inside_lineman_x + outside_lineman_x) / 2, y
 
-    if align_player:
-        x = align_player.x + offset
-    else:
-        x = sutils.get_rt(players_list).x + GHOST_DISTANCE * ghost_distance_multiplier \
-            if align_side == 'RT' else \
-            sutils.get_lt(players_list).x - GHOST_DISTANCE * ghost_distance_multiplier
+        inside_lineman_x = outside_lineman_x
+        outside_lineman_x = sutils.get_rt(players_list).x
+        if not is_a_defender_between(defense, inside_lineman_x, outside_lineman_x, 5):
+            return (inside_lineman_x + outside_lineman_x) / 2, y
 
-    return x, y
+        return outside_lineman_x + 2, y
+
+    outside_lineman_x = sutils.get_lg(players_list).x
+    if not is_a_defender_between(defense, outside_lineman_x, inside_lineman_x, 5):
+        return (inside_lineman_x + outside_lineman_x) / 2, y
+
+    inside_lineman_x = outside_lineman_x
+    outside_lineman_x = sutils.get_lt(players_list).x
+    if not is_a_defender_between(defense, outside_lineman_x, inside_lineman_x, 5):
+        return (inside_lineman_x + outside_lineman_x) / 2, y
+
+    return outside_lineman_x - 2, y
+
+
+def is_a_defender_between(defense, x1, x2, maxy):
+    affected_defenders = [defender for defender in defense.players.values() if defender.tag in defense.affected_tags]
+    return any(defender.placed_x > x1 and defender.placed_x < x2 and defender.placed_y <= maxy for defender in affected_defenders)
+
 
 placement_rules = {
     'absolute': absolute,
     'tech_alignment': tech_alignment,
     'over': over,
-    'apex': apex
+    'apex': apex,
+    'first_open_gap': first_open_gap
 }
 
 possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
@@ -175,5 +179,6 @@ placement_rule_info = {
     'absolute': (('int', 'int'), ((), ())),
     'tech_alignment': (('string', 'string', 'int', 'string'), (possible_side_types, possible_alignments, (), possible_bool)),
     'over': (('string', 'string', 'int', 'int', 'string'), (possible_side_types, possible_overs, (), (), possible_bool)),
-    'apex': (('string', 'string', 'int', 'string'), (possible_side_types, possible_apex, (), possible_bool))
+    'apex': (('string', 'string', 'int', 'string'), (possible_side_types, possible_apex, (), possible_bool)),
+    'first_open_gap': (('string', 'int', 'string'), (possible_side_types, (), possible_bool))
 }
