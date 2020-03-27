@@ -23,17 +23,16 @@ class ConditionSet:
             traceback.print_exc()
             return False
 
-    def get_placement(self, subformation):
+    def get_placement(self, subformation, defense):
         if self.placement_rule == '':
             return INVALID_POSITION
         placement_rule_name, arguments = placement_parser.parse(self.placement_rule)
         try:
-            return placement_rules[placement_rule_name](subformation, arguments)
+            return placement_rules[placement_rule_name](subformation, defense, arguments)
         except Exception:
             import traceback
             traceback.print_exc()
             return INVALID_POSITION
-
 
     def __repr__(self):
         return f'CondSet({self.condition}, {self.placement_rule})'
@@ -58,10 +57,10 @@ class Defender:
         self.condition_sets = [ConditionSet()]
         self.placed_x, self.placed_y = INVALID_POSITION
 
-    def place(self, subformation):
+    def place(self, subformation, defense):
         for condition_set in self.condition_sets:
             if condition_set.evaluate_condition(subformation):
-                self.placed_x, self.placed_y = condition_set.get_placement(subformation)
+                self.placed_x, self.placed_y = condition_set.get_placement(subformation, defense)
                 return
         self.placed_x, self.placed_y = INVALID_POSITION
 
@@ -105,9 +104,11 @@ class Defense:
     def place_defenders(self, subformation):
         for player in self.players.values():
             if player.tag in self.affected_tags:
-                player.place(subformation)
+                player.place(subformation, self)
             else:
                 player.placed_x, player.placed_y = INVALID_POSITION
+
+        #peform a second time for placement rules that require a second pass
 
     def copy_from(self, defense):
         self.players = copy.deepcopy(defense.players)
