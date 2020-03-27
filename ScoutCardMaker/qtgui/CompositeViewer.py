@@ -82,10 +82,10 @@ class DefenseVisualFrame(QFrame):
 
     def draw_defense(self, painter):
         player_start = (PLAYER_START[0], PLAYER_START[1])
+        self.defense.place_defenders(self.offensive_subformation)
         for defender in self.defense.players.values():
             if defender.tag not in self.defense.affected_tags:
                 continue
-            defender.place(self.offensive_subformation)
             if defender.placed_x == INVALID_POSITION[0] and defender.placed_y == INVALID_POSITION[1]:
                 continue
             try:
