@@ -89,6 +89,9 @@ def export_to_football_trainer(file_name, plays, offense_library, defense_librar
             if i == 5:
                 play_info['s6TimelineName'] = player_animation_key
 
+        play_info['flashMessage'] = play['VR Trainer Flash Message']
+        play_info['flashMessageTime'] = play['VR Trainer Flash Time']
+
         play_info_plays.append(play_info);
 
     script = {'plays': script_plays, 'playInfos': play_info_plays}
