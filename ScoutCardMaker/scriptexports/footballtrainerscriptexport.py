@@ -2,13 +2,16 @@ import json
 import scoutcardmaker.SubformationUtils as su
 from scoutcardmaker.Offense import Formation
 
+# TODO(aceplace): Rename the locals in this method to better match what it is exporting
 ######################
 # This exporter is meant to be used with my football trainer program, and its format matches what is expected by that.
 #####################
 def export_to_football_trainer(file_name, plays, offense_library, defense_library):
     script_plays = []
+    play_info_plays = []
     default_subformation = Formation().subformations['MOF_RT']
     for play in plays:
+        ## Play ##
         offense_info = f'{play["Number"]} {play["Personnel"]} {play["Hash"]} {play["Dnd"]} {play["Formation"]} {play["Play"]}'
         defense_info = f'{play["Defense"]} --- {play["Note"]}'
 
@@ -43,7 +46,52 @@ def export_to_football_trainer(file_name, plays, offense_library, defense_librar
         play_dict['players'] = players
         script_plays.append(play_dict)
 
-    script = {'plays': script_plays}
+        ## Play Info ##
+        play_info = {
+            'l1TimelineName': '',
+            'l2TimelineName': '',
+            'l3TimelineName': '',
+            'l4TimelineName': '',
+            'cTimelineName': '',
+            's1TimelineName': '',
+            's2TimelineName': '',
+            's3TimelineName': '',
+            's4TimelineName': '',
+            's5TimelineName': '',
+            's6TimelineName': ''
+        }
+        line_info = play['VR Trainer Play Line'].split()
+        skill_info = play['VR Trainer Play Skill'].split()
+
+        for i, player_animation_key in enumerate(line_info):
+            if i == 0:
+                play_info['l1TimelineName'] = player_animation_key
+            if i == 1:
+                play_info['l2TimelineName'] = player_animation_key
+            if i == 2:
+                play_info['cTimelineName'] = player_animation_key
+            if i == 3:
+                play_info['l3TimelineName'] = player_animation_key
+            if i == 4:
+                play_info['l4TimelineName'] = player_animation_key
+
+        for i, player_animation_key in enumerate(skill_info):
+            if i == 0:
+                play_info['s1TimelineName'] = player_animation_key
+            if i == 1:
+                play_info['s2TimelineName'] = player_animation_key
+            if i == 2:
+                play_info['s3TimelineName'] = player_animation_key
+            if i == 3:
+                play_info['s4TimelineName'] = player_animation_key
+            if i == 4:
+                play_info['s5TimelineName'] = player_animation_key
+            if i == 5:
+                play_info['s6TimelineName'] = player_animation_key
+
+        play_info_plays.append(play_info);
+
+    script = {'plays': script_plays, 'playInfos': play_info_plays}
 
     with open(file_name, 'w') as file:
         json.dump(script, file, indent=3)

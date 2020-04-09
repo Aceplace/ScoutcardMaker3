@@ -40,6 +40,8 @@ def get_script_from_excel_file(file_name, get_sheet_callback=None):
             play_info['Note'] = row_values[7]
             play_info['Card Maker Formation'] = row_values[8].strip().upper()
             play_info['Card Maker Defense'] = row_values[9].strip().upper()
+            play_info['VR Trainer Play Line'] = row_values[10]
+            play_info['VR Trainer Play Skill'] = row_values[12]
             plays.append(play_info)
     except IOError as e:
         return False, 'Couldn\'t load file'
