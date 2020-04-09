@@ -135,23 +135,23 @@ def first_open_gap(subformation, defense, arguments):
     if align_side == 'RT':
         outside_lineman_x = sutils.get_rg(players_list).x
         if not is_a_defender_between(defense, inside_lineman_x, outside_lineman_x, 5):
-            return (inside_lineman_x + outside_lineman_x) / 2, y
+            return (inside_lineman_x + outside_lineman_x) // 2, y
 
         inside_lineman_x = outside_lineman_x
         outside_lineman_x = sutils.get_rt(players_list).x
         if not is_a_defender_between(defense, inside_lineman_x, outside_lineman_x, 5):
-            return (inside_lineman_x + outside_lineman_x) / 2, y
+            return (inside_lineman_x + outside_lineman_x) // 2, y
 
         return outside_lineman_x + 2, y
 
     outside_lineman_x = sutils.get_lg(players_list).x
     if not is_a_defender_between(defense, outside_lineman_x, inside_lineman_x, 5):
-        return (inside_lineman_x + outside_lineman_x) / 2, y
+        return (inside_lineman_x + outside_lineman_x) // 2, y
 
     inside_lineman_x = outside_lineman_x
     outside_lineman_x = sutils.get_lt(players_list).x
     if not is_a_defender_between(defense, outside_lineman_x, inside_lineman_x, 5):
-        return (inside_lineman_x + outside_lineman_x) / 2, y
+        return (inside_lineman_x + outside_lineman_x) // 2, y
 
     return outside_lineman_x - 2, y
 
