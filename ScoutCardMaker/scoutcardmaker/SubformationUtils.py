@@ -134,6 +134,27 @@ def get_receivers_ordered(players, direction='right_to_left'):
 
     return players_ordered(receivers, direction)
 
+def get_unbalanced_side(players):
+    los_players_ordered = get_los_players_ordered(players, 'left_to_right')
+    center_player = get_center(players)
+    players_to_left_of_center = list(filter(lambda player: player.x < center_player.x, los_players_ordered))
+    players_to_right_of_center = list(filter(lambda player: player.x > center_player.x, los_players_ordered))
+    if len(players_to_left_of_center) < 3:
+        return 'RT'
+    if len(players_to_right_of_center) < 3:
+        return 'LT'
+    return None
+
+def get_unbalanced_player(players):
+    los_players = get_los_players_ordered(players, 'left_to_right')
+    center_player = get_center(players)
+    los_players_to_left_of_center = list(filter(lambda player: player.x < center_player.x, los_players))
+    los_players_to_right_of_center = list(filter(lambda player: player.x > center_player.x, los_players))
+    if len(los_players_to_left_of_center) < 3:
+        return players_ordered(los_players_to_right_of_center, "right_to_left")[1]
+    if len(los_players_to_right_of_center) < 3:
+        return players_ordered(los_players_to_left_of_center, "left_to_right")[1]
+    return None
 
 def get_attached_boundary(players):
     center = get_center(players)
@@ -333,6 +354,8 @@ def get_side(side_type, players, hash_mark):
 def get_formation_structure(players):
     receivers_to_left = get_num_receivers(players, 'LT')
     receivers_to_right = get_num_receivers(players, 'RT')
+    if receivers_to_left == 0 or receivers_to_right == 0:
+        return f'{max(receivers_to_left, receivers_to_right)}x0'
     if receivers_to_left == 1 and receivers_to_right == 1:
         return '1x1'
     if (receivers_to_left == 1 and receivers_to_right == 2) or (receivers_to_left == 2 and receivers_to_right == 1):
@@ -349,6 +372,9 @@ def get_formation_structure(players):
 def get_surface_structure(players, direction):
     number_of_receivers = get_num_receivers(players, direction)
     number_of_attached_receivers = get_num_attached(players, direction)
+
+    if number_of_receivers == 0:
+        return 'Nothing'
 
     if number_of_receivers == 1 and number_of_attached_receivers == 1:
         return 'Nub'

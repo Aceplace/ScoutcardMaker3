@@ -27,7 +27,7 @@ def clamp(n, smallest, largest):
 
 
 class ConditionSetEditor(QWidget):
-    def __init__(self, index, change_callback, delete_callback, add_callback, condition='', placement_rule=''):
+    def __init__(self, index, change_callback, delete_callback, up_callback, down_callback, add_callback, condition, placement_rule):
         super().__init__()
         self.index = index
         self.edit_condition = QLineEdit()
@@ -36,12 +36,18 @@ class ConditionSetEditor(QWidget):
         self.btn_delete_button.setMaximumWidth(32)
         self.btn_add_button = QPushButton('+')
         self.btn_add_button .setMaximumWidth(32)
+        self.btn_up_button = QPushButton('UP')
+        self.btn_up_button.setMaximumWidth(32)
+        self.btn_down_button = QPushButton('DN')
+        self.btn_down_button.setMaximumWidth(32)
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.edit_condition)
         layout.addWidget(self.edit_placement_rule)
-        layout.addWidget(self.btn_delete_button)
+        layout.addWidget(self.btn_up_button)
+        layout.addWidget(self.btn_down_button)
         layout.addWidget(self.btn_add_button)
+        layout.addWidget(self.btn_delete_button)
 
         self.edit_condition.setText(condition)
         self.edit_placement_rule.setText(placement_rule)
@@ -49,11 +55,16 @@ class ConditionSetEditor(QWidget):
         self.edit_condition.editingFinished.connect(lambda: change_callback(self.index, self.edit_condition.text(), self.edit_placement_rule.text()))
         self.edit_placement_rule.editingFinished.connect(lambda: change_callback(self.index, self.edit_condition.text(), self.edit_placement_rule.text()))
 
-        self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
+        self.btn_up_button.pressed.connect(lambda: up_callback(self.index))
+        self.btn_down_button.pressed.connect(lambda: down_callback(self.index))
         self.btn_add_button.pressed.connect(add_callback)
+        self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
+        self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
 
-# todo : Add new condition set anywhere in defender
-# todo : Be able to copy condition sets from other defender easily
+
+# todo(aceplace) : Add new condition set anywhere in defender
+# todo(aceplace) : Be able to copy condition sets from other defender easily
+# todo(aceplace) : Is validation needed for create_layout or move_up move_down?
 class DefenderEditor(QWidget):
     def __init__(self, status_bar, defense_visual_frame):
         super().__init__()
@@ -67,14 +78,15 @@ class DefenderEditor(QWidget):
 
     def create_and_layout_condition_set_editors(self, defender):
         self.defender = defender
-        condition_sets = self.defender.condition_sets
+        self.condition_sets = self.defender.condition_sets
         for condition_set_editor in self.condition_set_editors:
             self.layout.removeWidget(condition_set_editor)
             condition_set_editor.deleteLater()
 
         self.condition_set_editors = []
-        for index, condition_set in enumerate(condition_sets):
-            condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set, self.add_condition_set,
+        for index, condition_set in enumerate(self.condition_sets):
+            condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set,
+                                                      self.move_condition_set_up,  self.move_condition_set_down,  self.add_condition_set,
                                                       condition_set.condition, condition_set.placement_rule)
             self.condition_set_editors.append(condition_set_editor)
             self.layout.addWidget(condition_set_editor)
@@ -97,12 +109,39 @@ class DefenderEditor(QWidget):
 
     def add_condition_set(self):
         index = len(self.condition_set_editors)
-        condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set, self.add_condition_set,
+        condition_set_editor = ConditionSetEditor(index, self.edit_condition_set, self.delete_condition_set,
+                                                  self.move_condition_set_up, self.move_condition_set_down,  self.add_condition_set,
                                                   '', '')
         self.condition_set_editors.append(condition_set_editor)
         self.layout.addWidget(condition_set_editor)
         self.defender.condition_sets.append(ConditionSet())
         self.defense_visual_frame.update()
+
+    def move_condition_set_down(self, index):
+        if index == len(self.condition_set_editors) - 1:
+            return
+
+        self.condition_sets[index], self.condition_sets[index + 1] = self.condition_sets[index + 1], self.condition_sets[index]
+
+        editor_to_move_down = self.condition_set_editors[index]
+        self.condition_set_editors[index].index = index + 1
+        self.condition_set_editors[index + 1].index = index
+        self.condition_set_editors[index], self.condition_set_editors[index + 1] = self.condition_set_editors[index + 1], self.condition_set_editors[index]
+        self.layout.removeWidget(editor_to_move_down)
+        self.layout.insertWidget(index + 1, editor_to_move_down)
+
+    def move_condition_set_up(self, index):
+        if index == 0:
+             return
+
+        self.condition_sets[index], self.condition_sets[index-1] = self.condition_sets[index-1], self.condition_sets[index]
+
+        editor_to_move_down = self.condition_set_editors[index-1]
+        self.condition_set_editors[index].index = index - 1
+        self.condition_set_editors[index - 1].index = index
+        self.condition_set_editors[index], self.condition_set_editors[index-1] = self.condition_set_editors[index-1], self.condition_set_editors[index]
+        self.layout.removeWidget(editor_to_move_down)
+        self.layout.insertWidget(index, editor_to_move_down)
 
 
     def delete_condition_set(self, index):

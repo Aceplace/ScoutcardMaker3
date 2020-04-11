@@ -1,6 +1,7 @@
 from scoutcardmaker.Utils import INVALID_POSITION
 import scoutcardmaker.SubformationUtils as sutils
 
+# TODO(aceplace): Figure out how we will do unbalanced
 
 def absolute(subformation, defense, arguments):
     x = int(arguments[0])
@@ -81,6 +82,24 @@ def over(subformation, defense, arguments):
     return x, y
 
 
+def over_unbalanced_player(subformation, defense, arguments):
+    y = int(arguments[0])
+    offset = int(arguments[1])
+
+    players_list = list(subformation.players.values())
+
+    unbalanced_player = sutils.get_unbalanced_player(players_list)
+    if not unbalanced_player:
+        return INVALID_POSITION
+
+    unbalanced_player_side = sutils.get_unbalanced_side(players_list)
+    if unbalanced_player_side == 'LT':
+        x = unbalanced_player.x - offset
+    else:
+        x = unbalanced_player.x + offset
+
+    return x, y
+
 def apex(subformation, defense, arguments):
     side_type = arguments[0]
     apex_type = arguments[1]
@@ -116,7 +135,6 @@ def apex(subformation, defense, arguments):
 
     return x, y
 
-# todo(MikeY) : First open gap
 def first_open_gap(subformation, defense, arguments):
     if defense.pass_number != 2:
         return INVALID_POSITION
@@ -160,13 +178,15 @@ def is_a_defender_between(defense, x1, x2, maxy):
     affected_defenders = [defender for defender in defense.players.values() if defender.tag in defense.affected_tags]
     return any(defender.placed_x > x1 and defender.placed_x < x2 and defender.placed_y <= maxy for defender in affected_defenders)
 
+# todo(MikeY) : Second open gap
 
 placement_rules = {
     'absolute': absolute,
     'tech_alignment': tech_alignment,
     'over': over,
     'apex': apex,
-    'first_open_gap': first_open_gap
+    'first_open_gap': first_open_gap,
+    'over_unbalanced_player': over_unbalanced_player
 }
 
 possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
@@ -180,5 +200,6 @@ placement_rule_info = {
     'tech_alignment': (('string', 'string', 'int', 'string'), (possible_side_types, possible_alignments, (), possible_bool)),
     'over': (('string', 'string', 'int', 'int', 'string'), (possible_side_types, possible_overs, (), (), possible_bool)),
     'apex': (('string', 'string', 'int', 'string'), (possible_side_types, possible_apex, (), possible_bool)),
-    'first_open_gap': (('string', 'int', 'string'), (possible_side_types, (), possible_bool))
+    'first_open_gap': (('string', 'int', 'string'), (possible_side_types, (), possible_bool)),
+    'over_unbalanced_player': (('int', 'int'), ((), ()))
 }
