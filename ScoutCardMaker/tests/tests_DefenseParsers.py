@@ -25,7 +25,8 @@ class TestParseValidator(unittest.TestCase):
         ('', True, None),
         ('"lala", 10, "tom"))', False, 'parse error'),
         ('2 < 2 and', False, 'parse error'),
-
+        ('3 != 3', True, None),
+        ('3 != 4', True, None)
     ]
 
     inputs_should_produce_parse_error = [
@@ -85,8 +86,9 @@ class TestEvaluate(unittest.TestCase):
         ('((3 >= 2) and func3("joe") = "3x2")', False),
         ('((3 >= 2) and func3("joe") = "3x2") or 2 = 2', True),
         ('not ((3 >= 2) and func3("joe") = "3x2") or not 2 = 2', True),
-        ('not func2() = 2', False)
-
+        ('not func2() = 2', False),
+        ('3 != 3', False),
+        ('3 != 4', True)
     ]
 
     formation_function_map = {

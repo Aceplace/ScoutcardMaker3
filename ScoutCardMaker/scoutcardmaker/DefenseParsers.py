@@ -39,6 +39,8 @@ class BinaryOpNode:
             return lvalue < rvalue
         elif self.operation == 'GT':
             return lvalue > rvalue
+        elif self.operation == 'NOTEQUAL':
+            return lvalue != rvalue
 
     def __repr__(self):
         return f'op {self.operation} ({self.lvalue} , {self.rvalue})'
@@ -149,6 +151,7 @@ token_value_bin_op_map = {
     '<=': 'LTE',
     '>=': 'GTE',
     '=': 'EQUALS',
+    '!=': 'NOTEQUAL',
     '<': 'LT',
     '>': 'GT',
 }
@@ -346,7 +349,7 @@ def validate_node(node, expected_evaluate_type, formation_function_info):
                 return ln_validate
             rn_validate = validate_node(node.rvalue, 'number', formation_function_info)
             return rn_validate
-        if node.operation in ['EQUALS']:
+        if node.operation in ['EQUALS', 'NOTEQUAL']:
             ln_evaluate_string = validate_node(node.lvalue, 'string', formation_function_info)
             rn_evaluate_string = validate_node(node.rvalue, 'string', formation_function_info)
             if ln_evaluate_string[0] and rn_evaluate_string[0]:
