@@ -26,7 +26,9 @@ class TestParseValidator(unittest.TestCase):
         ('"lala", 10, "tom"))', False, 'parse error'),
         ('2 < 2 and', False, 'parse error'),
         ('3 != 3', True, None),
-        ('3 != 4', True, None)
+        ('3 != 4', True, None),
+        ('not 2 = 2', True, None),
+        ('not ((3 >= 2) and 2 = 5) or not 2 = 2', True, None),
     ]
 
     inputs_should_produce_parse_error = [

@@ -140,8 +140,8 @@ lexer = lex.lex()
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
+    ('nonassoc', 'NOT'),
     ('nonassoc', 'NOTEQUAL', 'LTE', 'GTE', 'EQUALS', 'LT', 'GT'),
-    ('nonassoc', 'NOT')
 )
 
 
@@ -367,7 +367,7 @@ def validate_node(node, expected_evaluate_type, formation_function_info):
     elif isinstance(node, NotNode):
         if expected_evaluate_type != 'bool':
             return False, f'"not" produces bool when {expected_evaluate_type} expected'
-        return validate_node(node.node_to_not, 'bool')
+        return validate_node(node.node_to_not, 'bool', formation_function_info)
 
 
 def validate_placement_rule(name, arguments, placement_rule_info):
