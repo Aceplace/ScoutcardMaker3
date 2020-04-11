@@ -59,7 +59,6 @@ class ConditionSetEditor(QWidget):
         self.btn_down_button.pressed.connect(lambda: down_callback(self.index))
         self.btn_add_button.pressed.connect(add_callback)
         self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
-        self.btn_delete_button.pressed.connect(lambda: delete_callback(self.index))
 
 
 # todo(aceplace) : Add new condition set anywhere in defender
