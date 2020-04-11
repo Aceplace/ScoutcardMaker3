@@ -20,13 +20,18 @@ def num_attached(subformation, side_type, flip):
         side = 'RT' if side == 'LT' else 'LT'
     return su.get_num_attached(list(subformation.players.values()), side)
 
-
 def num_detached(subformation, side_type, flip):
     side = su.get_side(side_type, list(subformation.players.values()), subformation.hash_mark)
     if flip == 'True':
         side = 'RT' if side == 'LT' else 'LT'
     return su.get_num_detached(list(subformation.players.values()), side)
 
+def is_there_te(subformation, side_type, flip):
+    side = su.get_side(side_type, list(subformation.players.values()), subformation.hash_mark)
+    if flip == 'True':
+        side = 'RT' if side == 'LT' else 'LT'
+    first_attached = su.get_first_attached(list(subformation.players.values()), side)
+    return first_attached != None and first_attached.y == 1
 
 def surface(subformation, side_type, flip):
     side = su.get_side(side_type, list(subformation.players.values()), subformation.hash_mark)
@@ -58,6 +63,7 @@ formation_function_map = {
     'ball_on_hash': ball_on_hash,
     'ball_in_middle': ball_in_middle,
     'ball': ball,
+    'is_there_te': is_there_te
 }
 
 
@@ -74,4 +80,5 @@ formation_function_info = {
     'ball_on_hash': ('bool', (), ()),
     'ball_in_middle': ('bool', (), ()),
     'ball': ('string', (), ()),
+    'is_there_te': ('bool', ('string', 'string'), (possible_side_types, possible_bool))
 }
