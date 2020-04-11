@@ -67,7 +67,7 @@ formation_function_map = {
 }
 
 
-possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'Opposite Attached and Receiver', 'Field', 'Boundary')
+possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'TE','Opposite Attached and Receiver', 'Field', 'Boundary')
 possible_bool = ('True', 'False')
 
 formation_function_info = {

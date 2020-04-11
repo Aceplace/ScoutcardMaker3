@@ -189,7 +189,7 @@ placement_rules = {
     'over_unbalanced_player': over_unbalanced_player
 }
 
-possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
+possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'TE', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
 possible_alignments = ('0', '1', '2i', '2', '3', '4i', '4', '5', '6i', '6', '7', '8i', '8', '9')
 possible_overs = ('#1', '#2', '#3', '#4')
 possible_apex = ('T_1st', '3_2', '2_1')

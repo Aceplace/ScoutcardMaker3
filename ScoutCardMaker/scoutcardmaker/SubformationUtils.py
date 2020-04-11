@@ -326,6 +326,9 @@ def get_third_attached(players, direction):
         return players_ordered(attached_players_to_side, 'left_to_right' if direction == 'RT' else 'right_to_left')[2]
     return None
 
+def is_there_te(players, direction):
+    first_attached = get_first_attached(players, direction)
+    return first_attached is not None and first_attached.y == 1
 
 def get_side(side_type, players, hash_mark):
     if side_type in ['LT', 'lt', 'Lt', 'RT', 'rt', 'Rt']:
@@ -337,6 +340,12 @@ def get_side(side_type, players, hash_mark):
         return get_receiver_strength(players, hash_mark)
     elif side_type == 'Back':
         return get_back_strength(players, hash_mark)
+    elif side_type == 'TE':
+        if is_there_te(players, 'RT') and not is_there_te(players, 'LT'):
+            return 'RT'
+        elif is_there_te(players, 'LT') and not is_there_te(players, 'RT'):
+            return 'LT'
+        return get_side('Attached', players, hash_mark)
     elif side_type == 'Opposite_Attached_and_Receiver':
         return get_opposite_attached_and_receiver_strength(players, hash_mark)
     elif side_type == 'Field':
