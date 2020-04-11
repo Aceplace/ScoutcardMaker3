@@ -40,12 +40,19 @@ def get_script_from_excel_file(file_name, get_sheet_callback=None):
             play_info['Note'] = row_values[7]
             play_info['Card Maker Formation'] = row_values[8].strip().upper()
             play_info['Card Maker Defense'] = row_values[9].strip().upper()
-            play_info['VR Trainer Play Line'] = row_values[10]
-            play_info['VR Trainer Play Skill'] = row_values[12]
-            play_info['VR Trainer Flash Message'] = row_values[14]
+
             try:
-                play_info['VR Trainer Flash Time'] = float(row_values[15])
-            except ValueError:
+                play_info['VR Trainer Play Line'] = row_values[10]
+                play_info['VR Trainer Play Skill'] = row_values[12]
+                play_info['VR Trainer Flash Message'] = row_values[14]
+                try:
+                    play_info['VR Trainer Flash Time'] = float(row_values[15])
+                except ValueError:
+                    play_info['VR Trainer Flash Time'] = 0.0
+            except IndexError:
+                play_info['VR Trainer Play Line'] = ''
+                play_info['VR Trainer Play Skill'] = ''
+                play_info['VR Trainer Flash Message'] = ''
                 play_info['VR Trainer Flash Time'] = 0.0
             plays.append(play_info)
     except IOError as e:
