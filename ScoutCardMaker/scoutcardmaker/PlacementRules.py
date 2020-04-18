@@ -66,8 +66,10 @@ def over(subformation, defense, arguments):
     align_side = sutils.get_side(side_type, players_list, subformation.hash_mark)
     if flip:
         align_side = 'RT' if align_side == 'LT' else 'LT'
-    receivers_outside_across = sutils.get_skill_ordered(players_list,
-                                                    'right_to_left' if align_side == 'RT' else 'left_to_right')
+
+    player_direction_outside_accross = 'right_to_left' if align_side == 'RT' else 'left_to_right'
+    receivers_outside_across = sutils.get_skill_ordered(players_list, player_direction_outside_accross)
+
     offset = offset if align_side == 'RT' else -offset
 
     if over == '#1':
@@ -78,6 +80,8 @@ def over(subformation, defense, arguments):
         x = receivers_outside_across[2].x + offset
     elif over == '#4':
         x = receivers_outside_across[3].x + offset
+    elif over == 'last_attached':
+        x = sutils.get_outside_most_attached_or_tackle(players_list, align_side).x + offset
 
     return x, y
 
@@ -191,7 +195,7 @@ placement_rules = {
 
 possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'TE', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
 possible_alignments = ('0', '1', '2i', '2', '3', '4i', '4', '5', '6i', '6', '7', '8i', '8', '9')
-possible_overs = ('#1', '#2', '#3', '#4')
+possible_overs = ('#1', '#2', '#3', '#4', 'last_attached')
 possible_apex = ('T_1st', '3_2', '2_1')
 possible_bool = ('True', 'False')
 
@@ -201,5 +205,5 @@ placement_rule_info = {
     'over': (('string', 'string', 'int', 'int', 'string'), (possible_side_types, possible_overs, (), (), possible_bool)),
     'apex': (('string', 'string', 'int', 'string'), (possible_side_types, possible_apex, (), possible_bool)),
     'first_open_gap': (('string', 'int', 'string'), (possible_side_types, (), possible_bool)),
-    'over_unbalanced_player': (('int', 'int'), ((), ()))
+    'over_unbalanced_player': (('int', 'int'), ((), ())),
 }

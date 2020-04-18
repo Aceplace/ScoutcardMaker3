@@ -243,6 +243,14 @@ def get_direction_with_most_offset_backs(players):
 
 
 def get_receiver_strength(players, hash_mark, default_strength='RT'):
+    #Treat power formations as TE strength
+    num_backs = len(get_backfield_ordered(players, 'right_to_left')) - 1
+    if num_backs >= 3:
+        if is_there_te(players, 'RT') and not is_there_te(players, 'LT'):
+            return 'RT'
+        elif is_there_te(players, 'LT') and not is_there_te(players, 'RT'):
+            return 'LT'
+
     direction = get_direction_with_most_receivers(players)
     if direction:
         return direction
@@ -325,6 +333,20 @@ def get_third_attached(players, direction):
     if len(attached_players_to_side) > 2:
         return players_ordered(attached_players_to_side, 'left_to_right' if direction == 'RT' else 'right_to_left')[2]
     return None
+
+def get_outside_most_attached(players, direction):
+    center_x = get_center(players).x
+    attached_players_to_side = players_on_side(center_x, get_attached_skill_ordered(players), direction)
+    if len(attached_players_to_side) > 0:
+        return players_ordered(attached_players_to_side, 'right_to_left' if direction == 'RT' else 'left_to_right')[0]
+    return None
+
+def get_outside_most_attached_or_tackle(players, direction):
+    center_x = get_center(players).x
+    attached_players_to_side = players_on_side(center_x, get_attached_skill_ordered(players), direction)
+    if len(attached_players_to_side) > 0:
+        return players_ordered(attached_players_to_side, 'right_to_left' if direction == 'RT' else 'left_to_right')[0]
+    return get_rt(players) if direction == 'RT' else get_lt(players)
 
 def is_there_te(players, direction):
     first_attached = get_first_attached(players, direction)
