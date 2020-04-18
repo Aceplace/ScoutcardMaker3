@@ -83,13 +83,24 @@ def over(subformation, defense, arguments, optional_arguments):
         player_defender_is_over = receivers_outside_across[3]
     elif over == 'last_attached':
         player_defender_is_over = sutils.get_outside_most_attached_or_tackle(players_list, align_side)
+    elif over == 'los_between_2_1':
+        player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y == 1 else receivers_outside_across[0]
+    elif over == 'non_los_between_2_1':
+        player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y != 1 else receivers_outside_across[1]
+    elif over == 'los_between_3_2':
+        player_defender_is_over = receivers_outside_across[2] if receivers_outside_across[2].y == 1 else receivers_outside_across[1]
+    elif over == 'non_los_between_3_2':
+        player_defender_is_over = receivers_outside_across[2] if receivers_outside_across[2].y != 1 else receivers_outside_across[0]
 
     x = player_defender_is_over.x + offset
 
     if 'back_off_if_occupied' in optional_arguments:
-        min_x, max_x = (player_defender_is_over.x - 4, player_defender_is_over.x + 1) if align_side == 'LT' else (player_defender_is_over.x - 1, player_defender_is_over.x + 4)
+        min_x, max_x = (player_defender_is_over.x - 5, player_defender_is_over.x + 1) if align_side == 'LT' else (player_defender_is_over.x - 1, player_defender_is_over.x + 5)
         if is_a_defender_between(defense, min_x, max_x, 3):
             y = 5
+
+    if 'back_off_wing' in optional_arguments and y < 2 and player_defender_is_over.y > 1:
+        y = 2
 
     return x, y
 
@@ -186,11 +197,8 @@ def first_open_gap(subformation, defense, arguments, optional_arguments):
     return outside_lineman_x - 2, y
 
 
-def is_a_defender_between(defense, x1, x2, maxy):
-    affected_defenders = [defender for defender in defense.players.values() if defender.tag in defense.affected_tags]
-    return any(defender.placed_x > x1 and defender.placed_x < x2 and defender.placed_y <= maxy for defender in affected_defenders)
-
-# todo(MikeY) : Second open gap
+# todo(aceplace) : Second open gap
+# todo(aceplace) : Figure out how to modify from previously placed defenders (in a composite formation)
 
 placement_rules = {
     'absolute': absolute,
@@ -198,12 +206,12 @@ placement_rules = {
     'over': over,
     'apex': apex,
     'first_open_gap': first_open_gap,
-    'over_unbalanced_player': over_unbalanced_player
+    'over_unbalanced_player': over_unbalanced_player,
 }
 
 possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'TE', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
 possible_alignments = ('0', '1', '2i', '2', '3', '4i', '4', '5', '6i', '6', '7', '8i', '8', '9')
-possible_overs = ('#1', '#2', '#3', '#4', 'last_attached')
+possible_overs = ('#1', '#2', '#3', '#4', 'last_attached', 'los_between_2_1', 'non_los_between_2_1', 'los_between_3_2', 'non_los_between_3_2')
 possible_apex = ('T_1st', '3_2', '2_1')
 possible_bool = ('True', 'False')
 
@@ -216,4 +224,9 @@ placement_rule_info = {
     'over_unbalanced_player': (('int', 'int'), ((), ())),
 }
 
-# optionals
+# Support methods
+def is_a_defender_between(defense, x1, x2, maxy):
+    affected_defenders = [defender for defender in defense.players.values() if defender.tag in defense.affected_tags]
+    return any(defender.placed_x > x1 and defender.placed_x < x2 and defender.placed_y <= maxy for defender in affected_defenders)
+
+# Optionals
