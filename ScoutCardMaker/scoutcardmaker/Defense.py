@@ -23,10 +23,15 @@ class ConditionSet:
             traceback.print_exc()
             return False
 
-    def get_placement(self, subformation, defense):
+    def get_placement(self, subformation, defense, currently_placed_x, currently_placed_y):
         if self.placement_rule == '':
             return INVALID_POSITION
+
         placement_rule_name, arguments, optional_arguments = placement_parser.parse(self.placement_rule)
+
+        if ('pass_2' in optional_arguments and defense.pass_number != 2) or ('pass_3' in optional_arguments and defense.pass_number != 3):
+            return currently_placed_x, currently_placed_y
+
         try:
             return placement_rules[placement_rule_name](subformation, defense, arguments, optional_arguments)
         except Exception:
@@ -58,9 +63,13 @@ class Defender:
         self.placed_x, self.placed_y = INVALID_POSITION
 
     def place(self, subformation, defense):
+        # If defender is already placed, we won't re place him
+        if (self.placed_x, self.placed_y) != INVALID_POSITION:
+            return self.placed_x, self.placed_y
+
         for condition_set in self.condition_sets:
             if condition_set.evaluate_condition(subformation):
-                self.placed_x, self.placed_y = condition_set.get_placement(subformation, defense)
+                self.placed_x, self.placed_y = condition_set.get_placement(subformation, defense, self.placed_x, self.placed_y)
                 return
         self.placed_x, self.placed_y = INVALID_POSITION
 
@@ -102,20 +111,25 @@ class Defense:
         self.affected_tags = []
 
     def place_defenders(self, subformation):
+        for player in self.players.values():
+            player.placed_x, player.placed_y = INVALID_POSITION
+
         self.pass_number = 1
         for player in self.players.values():
             if player.tag in self.affected_tags:
                 player.place(subformation, self)
-            else:
-                player.placed_x, player.placed_y = INVALID_POSITION
 
-        #peform a second time for placement rules that require a second pass
+        #perform a second time for placement rules that require a second pass
         self.pass_number = 2
         for player in self.players.values():
             if player.tag in self.affected_tags:
                 player.place(subformation, self)
-            else:
-                player.placed_x, player.placed_y = INVALID_POSITION
+
+        #perform a third time for placement rules that require a third pass
+        self.pass_number = 3
+        for player in self.players.values():
+            if player.tag in self.affected_tags:
+                player.place(subformation, self)
 
     def copy_from(self, defense):
         self.players = copy.deepcopy(defense.players)

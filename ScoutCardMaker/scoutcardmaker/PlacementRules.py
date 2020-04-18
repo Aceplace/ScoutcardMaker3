@@ -72,16 +72,24 @@ def over(subformation, defense, arguments, optional_arguments):
 
     offset = offset if align_side == 'RT' else -offset
 
+    player_defender_is_over = None
     if over == '#1':
-        x = receivers_outside_across[0].x + offset
+        player_defender_is_over = receivers_outside_across[0]
     elif over == '#2':
-        x = receivers_outside_across[1].x + offset
+        player_defender_is_over = receivers_outside_across[1]
     elif over == '#3':
-        x = receivers_outside_across[2].x + offset
+        player_defender_is_over = receivers_outside_across[2]
     elif over == '#4':
-        x = receivers_outside_across[3].x + offset
+        player_defender_is_over = receivers_outside_across[3]
     elif over == 'last_attached':
-        x = sutils.get_outside_most_attached_or_tackle(players_list, align_side).x + offset
+        player_defender_is_over = sutils.get_outside_most_attached_or_tackle(players_list, align_side)
+
+    x = player_defender_is_over.x + offset
+
+    if 'back_off_if_occupied' in optional_arguments:
+        min_x, max_x = (player_defender_is_over.x - 4, player_defender_is_over.x + 1) if align_side == 'LT' else (player_defender_is_over.x - 1, player_defender_is_over.x + 4)
+        if is_a_defender_between(defense, min_x, max_x, 3):
+            y = 5
 
     return x, y
 
@@ -207,3 +215,5 @@ placement_rule_info = {
     'first_open_gap': (('string', 'int', 'string'), (possible_side_types, (), possible_bool)),
     'over_unbalanced_player': (('int', 'int'), ((), ())),
 }
+
+# optionals
