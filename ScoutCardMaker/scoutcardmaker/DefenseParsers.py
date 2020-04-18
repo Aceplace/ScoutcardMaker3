@@ -262,8 +262,19 @@ class PlacementParser:
         if len(str_to_parse) == 0:
             return '', []
         split_str_to_parse = str_to_parse.split()
-        return split_str_to_parse[0], split_str_to_parse[1:]
+        index_of_optional = PlacementParser.get_index_of_optional(split_str_to_parse)
+        if index_of_optional == -1:
+            return split_str_to_parse[0], split_str_to_parse[1:], []
+        else:
+            return split_str_to_parse[0], split_str_to_parse[1:index_of_optional], split_str_to_parse[index_of_optional + 1:]
 
+    @staticmethod
+    def get_index_of_optional(arguments):
+        try:
+            index = arguments.index('--')
+            return index
+        except ValueError:
+            return -1
 
 placement_parser = PlacementParser()
 
@@ -293,7 +304,7 @@ class DefensiveValidator:
         return True
 
     def validate_placement_rule(self, placement_rule):
-        placement_rule_name, placement_rule_arguments = placement_parser.parse(placement_rule)
+        placement_rule_name, placement_rule_arguments, placement_rule_optional_arguments = placement_parser.parse(placement_rule)
         if placement_rule_name == '':
             self.success = True
             self.error_message = None
@@ -376,6 +387,9 @@ def validate_placement_rule(name, arguments, placement_rule_info):
 
     if name not in placement_rule_info:
         return False, f'{name} is not a placement rule'
+
+    if len(arguments) == len(placement_rule_info[name][1]) + 1:
+        pass
 
     if len(arguments) != len(placement_rule_info[name][1]):
         return False, f'{name} number of arguments mismatch'

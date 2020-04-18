@@ -3,7 +3,7 @@ import scoutcardmaker.SubformationUtils as sutils
 
 # TODO(aceplace): Figure out how we will do unbalanced
 
-def absolute(subformation, defense, arguments):
+def absolute(subformation, defense, arguments, optional_arguments):
     x = int(arguments[0])
     y = int(arguments[1])
     return x, y
@@ -12,7 +12,7 @@ def absolute(subformation, defense, arguments):
 GHOST_DISTANCE = 4
 
 
-def tech_alignment(subformation, defense, arguments):
+def tech_alignment(subformation, defense, arguments, optional_arguments):
     side_type = arguments[0]
     alignment = arguments[1]
     y = int(arguments[2])
@@ -54,7 +54,7 @@ def tech_alignment(subformation, defense, arguments):
     return x, y
 
 
-def over(subformation, defense, arguments):
+def over(subformation, defense, arguments, optional_arguments):
     side_type = arguments[0]
     over = arguments[1]
     y = int(arguments[2])
@@ -86,7 +86,7 @@ def over(subformation, defense, arguments):
     return x, y
 
 
-def over_unbalanced_player(subformation, defense, arguments):
+def over_unbalanced_player(subformation, defense, arguments, optional_arguments):
     y = int(arguments[0])
     offset = int(arguments[1])
 
@@ -104,7 +104,7 @@ def over_unbalanced_player(subformation, defense, arguments):
 
     return x, y
 
-def apex(subformation, defense, arguments):
+def apex(subformation, defense, arguments, optional_arguments):
     side_type = arguments[0]
     apex_type = arguments[1]
     y = int(arguments[2])
@@ -139,7 +139,7 @@ def apex(subformation, defense, arguments):
 
     return x, y
 
-def first_open_gap(subformation, defense, arguments):
+def first_open_gap(subformation, defense, arguments, optional_arguments):
     if defense.pass_number != 2:
         return INVALID_POSITION
 

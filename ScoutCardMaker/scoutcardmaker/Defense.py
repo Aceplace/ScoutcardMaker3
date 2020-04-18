@@ -26,9 +26,9 @@ class ConditionSet:
     def get_placement(self, subformation, defense):
         if self.placement_rule == '':
             return INVALID_POSITION
-        placement_rule_name, arguments = placement_parser.parse(self.placement_rule)
+        placement_rule_name, arguments, optional_arguments = placement_parser.parse(self.placement_rule)
         try:
-            return placement_rules[placement_rule_name](subformation, defense, arguments)
+            return placement_rules[placement_rule_name](subformation, defense, arguments, optional_arguments)
         except Exception:
             import traceback
             traceback.print_exc()
