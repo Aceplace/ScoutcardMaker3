@@ -260,7 +260,7 @@ class PlacementParser:
     @staticmethod
     def parse(str_to_parse):
         if len(str_to_parse) == 0:
-            return '', []
+            return '', [], []
         split_str_to_parse = str_to_parse.split()
         index_of_optional = PlacementParser.get_index_of_optional(split_str_to_parse)
         if index_of_optional == -1:
