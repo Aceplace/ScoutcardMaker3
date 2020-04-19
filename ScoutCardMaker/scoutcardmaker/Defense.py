@@ -23,14 +23,20 @@ class ConditionSet:
             traceback.print_exc()
             return False
 
-    def get_placement(self, subformation, defense, currently_placed_x, currently_placed_y):
+    def get_placement(self, subformation, defense, defender):
         if self.placement_rule == '':
             return INVALID_POSITION
 
         placement_rule_name, arguments, optional_arguments = placement_parser.parse(self.placement_rule)
 
-        if ('pass_2' in optional_arguments and defense.pass_number != 2) or ('pass_3' in optional_arguments and defense.pass_number != 3):
-            return currently_placed_x, currently_placed_y
+        if defense.pass_number == 4 and 'replace' in optional_arguments: # clear
+            defender.placed_x, defender.placed_y = INVALID_POSITION
+
+        if (defense.pass_number == 2 and 'pass_2' not in optional_arguments) or \
+                (defense.pass_number == 3 and 'pass_3' not in optional_arguments) or \
+                (defense.pass_number == 4 and 'replace' not in optional_arguments) or \
+                (defense.pass_number == 1 and ('pass_2' in optional_arguments or 'pass_3' in optional_arguments)):
+            return defender.placed_x, defender.placed_y
 
         try:
             return placement_rules[placement_rule_name](subformation, defense, arguments, optional_arguments)
@@ -55,7 +61,6 @@ class ConditionSet:
         condition_set.placement_rule = obj['placement_rule']
         return condition_set
 
-
 class Defender:
     def __init__(self, tag):
         self.tag = tag
@@ -64,12 +69,12 @@ class Defender:
 
     def place(self, subformation, defense):
         # If defender is already placed, we won't re place him
-        if (self.placed_x, self.placed_y) != INVALID_POSITION:
-            return self.placed_x, self.placed_y
+        #if (self.placed_x, self.placed_y) != INVALID_POSITION:
+        #    return self.placed_x, self.placed_y
 
         for condition_set in self.condition_sets:
             if condition_set.evaluate_condition(subformation):
-                self.placed_x, self.placed_y = condition_set.get_placement(subformation, defense, self.placed_x, self.placed_y)
+                self.placed_x, self.placed_y = condition_set.get_placement(subformation, defense, self)
                 return
         self.placed_x, self.placed_y = INVALID_POSITION
 
@@ -127,6 +132,12 @@ class Defense:
 
         #perform a third time for placement rules that require a third pass
         self.pass_number = 3
+        for player in self.players.values():
+            if player.tag in self.affected_tags:
+                player.place(subformation, self)
+
+        # perform a replace pass
+        self.pass_number = 4
         for player in self.players.values():
             if player.tag in self.affected_tags:
                 player.place(subformation, self)
