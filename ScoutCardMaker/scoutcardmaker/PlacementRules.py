@@ -51,6 +51,11 @@ def tech_alignment(subformation, defense, arguments, optional_arguments):
             if align_side == 'RT' else \
             sutils.get_lt(players_list).x - GHOST_DISTANCE * ghost_distance_multiplier
 
+    if 'slide_in_if_covered' in optional_arguments:
+        min_x, max_x = (x - 5, x + 1) if align_side == 'LT' else (x - 1, x + 5)
+        if is_a_defender_between(defense, min_x, max_x, 1):
+            x = x + 3 if align_side == 'LT' else x - 3
+
     return x, y
 
 
@@ -83,6 +88,8 @@ def over(subformation, defense, arguments, optional_arguments):
         player_defender_is_over = receivers_outside_across[3]
     elif over == 'last_attached':
         player_defender_is_over = sutils.get_outside_most_attached_or_tackle(players_list, align_side)
+    elif over == 'first_attached':
+        player_defender_is_over = sutils.get_first_attached(players_list, align_side)
     elif over == 'los_between_2_1':
         player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y == 1 else receivers_outside_across[0]
     elif over == 'non_los_between_2_1':
@@ -98,6 +105,11 @@ def over(subformation, defense, arguments, optional_arguments):
         min_x, max_x = (player_defender_is_over.x - 5, player_defender_is_over.x + 1) if align_side == 'LT' else (player_defender_is_over.x - 1, player_defender_is_over.x + 5)
         if is_a_defender_between(defense, min_x, max_x, 3):
             y = 5
+
+    if 'back_off_further_if_occupied' in optional_arguments:
+        min_x, max_x = (player_defender_is_over.x - 5, player_defender_is_over.x + 1) if align_side == 'LT' else (player_defender_is_over.x - 1, player_defender_is_over.x + 5)
+        if is_a_defender_between(defense, min_x, max_x, 3):
+            y = 7
 
     if 'back_off_wing' in optional_arguments and y < 2 and player_defender_is_over.y > 1:
         y = 2
@@ -159,9 +171,6 @@ def apex(subformation, defense, arguments, optional_arguments):
     return x, y
 
 def first_open_gap(subformation, defense, arguments, optional_arguments):
-    if defense.pass_number != 2:
-        return INVALID_POSITION
-
     side_type = arguments[0]
     y = int(arguments[1])
     flip = True if arguments[2] == 'True' else False
@@ -211,7 +220,7 @@ placement_rules = {
 
 possible_side_types = ('LT', 'RT', 'Attached', 'Receiver', 'Back', 'TE', 'Opposite_Attached_and_Receiver', 'Field', 'Boundary')
 possible_alignments = ('0', '1', '2i', '2', '3', '4i', '4', '5', '6i', '6', '7', '8i', '8', '9')
-possible_overs = ('#1', '#2', '#3', '#4', 'last_attached', 'los_between_2_1', 'non_los_between_2_1', 'los_between_3_2', 'non_los_between_3_2')
+possible_overs = ('#1', '#2', '#3', '#4', 'last_attached', 'first_attached', 'los_between_2_1', 'non_los_between_2_1', 'los_between_3_2', 'non_los_between_3_2')
 possible_apex = ('T_1st', '3_2', '2_1')
 possible_bool = ('True', 'False')
 
