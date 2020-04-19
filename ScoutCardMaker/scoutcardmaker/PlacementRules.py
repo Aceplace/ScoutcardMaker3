@@ -86,11 +86,11 @@ def over(subformation, defense, arguments, optional_arguments):
     elif over == 'los_between_2_1':
         player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y == 1 else receivers_outside_across[0]
     elif over == 'non_los_between_2_1':
-        player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y != 1 else receivers_outside_across[1]
+        player_defender_is_over = receivers_outside_across[1] if receivers_outside_across[1].y != 1 else receivers_outside_across[0]
     elif over == 'los_between_3_2':
         player_defender_is_over = receivers_outside_across[2] if receivers_outside_across[2].y == 1 else receivers_outside_across[1]
     elif over == 'non_los_between_3_2':
-        player_defender_is_over = receivers_outside_across[2] if receivers_outside_across[2].y != 1 else receivers_outside_across[0]
+        player_defender_is_over = receivers_outside_across[2] if receivers_outside_across[2].y != 1 else receivers_outside_across[1]
 
     x = player_defender_is_over.x + offset
 
