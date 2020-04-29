@@ -1,3 +1,5 @@
+import os
+
 from qtgui.UI_Exporter import Ui_ExportGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog, QPushButton, QVBoxLayout
 import sys
@@ -37,14 +39,14 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
             if not file_name:
                 return
 
-            self.last_load_location = file_name
+            self.last_load_location = os.path.dirname(file_name)
             success, script = get_script_from_excel_file(file_name, self.get_sheet_choice_callback)
 
             file_name, _ = QFileDialog.getSaveFileName(self, 'Scout Card Filename', self.last_save_location, 'Power Point (*.pptx)')
             if not file_name:
                 return
 
-            self.last_save_location = file_name
+            self.last_save_location = os.path.dirname(file_name)
             if alternating:
                 export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library, offense)
             else:
@@ -62,14 +64,14 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
             if not file_name:
                 return
 
-            self.last_load_location = file_name
+            self.last_load_location = os.path.dirname(file_name)
             success, script = get_script_from_excel_file(file_name, self.get_sheet_choice_callback)
 
             file_name, _ = QFileDialog.getSaveFileName(self, 'Trainer Script', self.last_save_location, 'JSON (*.json)')
             if not file_name:
                 return
 
-            self.last_save_location = file_name
+            self.last_save_location = os.path.dirname(file_name)
             export_to_football_trainer(file_name, script, self.formation_library, self.defense_library)
 
             self.update_directory_location_callback(self.last_load_location, self.last_save_location)
