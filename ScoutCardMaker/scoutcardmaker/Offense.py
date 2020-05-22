@@ -43,9 +43,10 @@ class Subformation:
     def copy_from(self, subformation):
         self.players = copy.deepcopy(subformation.players)
 
+
     def copy_affected(self, subformation, affected_player_tags):
         for key, player in self.players.items():
-            if player.tag in affected_player_tags:
+            if player.tag in affected_player_tags or player.tag in ['L1', 'L2', 'L3', 'L4', 'C']: # TODO(aceplace) : move lineman out of copy affects check
                 self.players[key] = copy.deepcopy(subformation.players[key])
 
     def flip(self):
