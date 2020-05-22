@@ -61,7 +61,7 @@ class DefenseVisualFrame(QFrame):
                              TOP_LEFT[0] + HOR_YD_LEN * 108,
                              TOP_LEFT[1] + VER_YD_LEN * 5 * row)
 
-        for combo in list(itertools.product([14, 18, 36, 72, 90, 94], [0, 1, 2, 3, 4, 5])):
+        for combo in list(itertools.product([14, 18, 36, 41, 67, 72, 90, 94], [0, 1, 2, 3, 4, 5])):
             offset = combo[0]
             row = combo[1]
             painter.drawLine(TOP_LEFT[0] + HOR_YD_LEN * offset,

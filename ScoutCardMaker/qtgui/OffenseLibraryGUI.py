@@ -58,7 +58,7 @@ class FormationFrame(QFrame):
             painter.drawLine(top_left[0], top_left[1] + VER_YD_LEN * 5 * row,
                              top_left[0] + HOR_YD_LEN * 108, top_left[1] + VER_YD_LEN * 5 * row)
 
-        for combo in list(itertools.product([14, 18, 36, 72, 90, 94],[0, 1, 2])):
+        for combo in list(itertools.product([14, 18, 36, 41, 67, 72, 90, 94],[0, 1, 2])):
             offset = combo[0]
             row = combo[1]
             painter.drawLine(top_left[0] + HOR_YD_LEN * offset, top_left[1] + VER_YD_LEN * 5 * row - HASH_SIZE / 2,
