@@ -156,8 +156,9 @@ def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_l
             shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
             shape.line.color.rgb = RGBColor(0, 0, 0)
             shape.line.width = Pt(1.0)
-            shape.text_frame.text = label if len(label) != 2 else label[1]
-            shape.text_frame.paragraphs[0].font.size = Pt(12)
+            shape.text_frame.text = label
+            shape.text_frame.paragraphs[0].font.size = Pt(12) if len(label) == 1 else Pt(9)
+            shape.text_frame.word_wrap = False
             shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
             shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
 
@@ -209,8 +210,9 @@ def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_
             shape.fill.fore_color.rgb = RGBColor(255, 255, 255)
             shape.line.color.rgb = RGBColor(0, 0, 0)
             shape.line.width = Pt(1.0)
-            shape.text_frame.text = label if len(label) != 2 else label[1]
-            shape.text_frame.paragraphs[0].font.size = Pt(24)
+            shape.text_frame.text = label
+            shape.text_frame.word_wrap = False
+            shape.text_frame.paragraphs[0].font.size = Pt(24) if len(label) == 1 else Pt(16)
             shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
             shape.text_frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
 
