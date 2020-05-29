@@ -13,7 +13,21 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QCheckBox" name="cb_college_hash_marks">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>121</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>College Hash Marks</string>
+    </property>
+   </widget>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -35,6 +49,8 @@
     </property>
     <addaction name="actionCreate_Scout_Cards"/>
     <addaction name="actionCreate_Scout_Cards_Alternating"/>
+    <addaction name="action_Off_Create_Scout_Cards"/>
+    <addaction name="action_Off_Create_Scout_Cards_Alternating"/>
     <addaction name="separator"/>
     <addaction name="actionCreate_Football_Trainer_Script"/>
    </widget>
@@ -55,6 +71,16 @@
   <action name="actionCreate_Scout_Cards_Alternating">
    <property name="text">
     <string>Create Scout Cards Alternating</string>
+   </property>
+  </action>
+  <action name="action_Off_Create_Scout_Cards">
+   <property name="text">
+    <string>(Off) Create Scout Cards</string>
+   </property>
+  </action>
+  <action name="action_Off_Create_Scout_Cards_Alternating">
+   <property name="text">
+    <string>(Off) Create Scout Cards Alternating</string>
    </property>
   </action>
   <action name="actionCreate_Football_Trainer_Script">

@@ -22,9 +22,10 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
         self.update_directory_location_callback = update_directory_location_callback
         self.actionCreate_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False, False))
         self.actionCreate_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True, False))
-        self.actionOff_Create_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False, True))
-        self.actionOff_Create_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True, True))
+        self.action_Off_Create_Scout_Cards.triggered.connect(lambda: self.handle_create_scout_cards(False, True))
+        self.action_Off_Create_Scout_Cards_Alternating.triggered.connect(lambda: self.handle_create_scout_cards(True, True))
         self.actionCreate_Football_Trainer_Script.triggered.connect(self.handle_create_football_trainer_script)
+        self.cb_college_hash_marks.stateChanged.connect(self.handle_cb_college_hash_marks_changed)
         self.show()
 
     def load_offense_library_from_dict(self, library_dict):
@@ -48,9 +49,9 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
 
             self.last_save_location = os.path.dirname(file_name) + '/'
             if alternating:
-                export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library, offense)
+                export_to_powerpoint_alternating(file_name, script, self.formation_library, self.defense_library, offense, self.cb_college_hash_marks.isChecked())
             else:
-                export_to_powerpoint(file_name, script, self.formation_library, self.defense_library, offense)
+                export_to_powerpoint(file_name, script, self.formation_library, self.defense_library, offense, self.cb_college_hash_marks.isChecked())
 
             self.update_directory_location_callback(self.last_load_location, self.last_save_location)
 
@@ -79,6 +80,10 @@ class ExportGUI(QMainWindow, Ui_ExportGui):
         except Exception:
             import traceback
             traceback.print_exc()
+
+    def handle_cb_college_hash_marks_changed(self):
+        with open('hash_mark_preferences.txt', 'w') as file:
+            file.write('college' if self.cb_college_hash_marks.isChecked() else 'high_school')
 
     def get_sheet_choice_callback(self, choices):
         choose_sheet_dialog = ChooseSheetDialog(choices)
@@ -124,6 +129,13 @@ def launch(last_load_location, last_save_location, update_last_directory_callbac
             window.load_defense_library_from_dict(json.load(file))
     except FileNotFoundError:
         print('Defensive library file not found')
+
+    try:
+        with open('hash_mark_preferences.txt') as file:
+            preference = file.readline()
+            window.cb_college_hash_marks.setChecked(True if preference == 'college' else False)
+    except FileNotFoundError:
+        print('Hash mark preference not found')
 
     sys.exit(app.exec_())
 

@@ -36,6 +36,8 @@ LEFT_SIDELINE = CENTER_X_POS - HORIZONTAL_COORDINATE_SIZE * 53
 RIGHT_SIDELINE = CENTER_X_POS + HORIZONTAL_COORDINATE_SIZE * 53
 LEFT_HASH = CENTER_X_POS - HORIZONTAL_COORDINATE_SIZE * 18
 RIGHT_HASH = CENTER_X_POS + HORIZONTAL_COORDINATE_SIZE * 18
+LEFT_HASH_COLLEGE = CENTER_X_POS - HORIZONTAL_COORDINATE_SIZE * 12
+RIGHT_HASH_COLLEGE = CENTER_X_POS + HORIZONTAL_COORDINATE_SIZE * 12
 LEFT_TOP_OF_NUMBERS = CENTER_X_POS - HORIZONTAL_COORDINATE_SIZE * 35
 LEFT_BOTTOM_OF_NUMBERS = CENTER_X_POS - HORIZONTAL_COORDINATE_SIZE * 39
 RIGHT_TUP_OF_NUMBERS = CENTER_X_POS + HORIZONTAL_COORDINATE_SIZE * 35
@@ -63,7 +65,7 @@ def player_coordinates_to_powerpoint(player_x, player_y, is_tight_view, is_for_o
         return (TIGHT_CENTER_X_POS + player_x * TIGHT_HORIZONTAL_COORDINATE_SIZE, center_y_pos + player_y * TIGHT_VERTICAL_COORDINATE_SIZE)
 
 
-def export_to_powerpoint(output_filename, plays, offense_library, defense_library, is_for_offense):
+def export_to_powerpoint(output_filename, plays, offense_library, defense_library, is_for_offense, college_hash_marks=False):
     presentation = Presentation()
 
     #do wide versions first
@@ -76,7 +78,7 @@ def export_to_powerpoint(output_filename, plays, offense_library, defense_librar
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense, college_hash_marks)
 
     # do tight versions after
     for play in plays:
@@ -88,11 +90,11 @@ def export_to_powerpoint(output_filename, plays, offense_library, defense_librar
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense, college_hash_marks)
 
     presentation.save(output_filename)
 
-def export_to_powerpoint_alternating(output_filename, plays, offense_library, defender_library, is_for_offense):
+def export_to_powerpoint_alternating(output_filename, plays, offense_library, defender_library, is_for_offense, college_hash_marks=False):
     presentation = Presentation()
 
     for play in plays:
@@ -105,7 +107,7 @@ def export_to_powerpoint_alternating(output_filename, plays, offense_library, de
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_wide_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense)
+        add_wide_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense, college_hash_marks)
 
         # then tight
         slide = presentation.slides.add_slide(presentation.slide_layouts[6])
@@ -116,12 +118,12 @@ def export_to_powerpoint_alternating(output_filename, plays, offense_library, de
         text_box = slide.shapes.add_textbox(TITLE_LEFT, TITLE_TOP + Pt(24) * 2, TITLE_WIDTH, TITLE_HEIGHT)
         text_box.text_frame.text = f'{play["Defense"]} --- {play["Note"]}'
         text_box.text_frame.paragraphs[0].font.size = Pt(24)
-        add_tight_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense)
+        add_tight_formation_and_defense_slide(play, slide, offense_library, defender_library, is_for_offense, college_hash_marks)
 
     presentation.save(output_filename)
 
 
-def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense):
+def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense, college_hash_marks):
     #draw sideline
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, LEFT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
     slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_SIDELINE, CENTER_Y_POS - FIVE_YARDS * 3, RIGHT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * 2)
@@ -130,8 +132,12 @@ def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_l
         #draw lines that go accross field at 5 yard intervals
         slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * num, RIGHT_SIDELINE, CENTER_Y_POS + FIVE_YARDS * num)
         #draw hash marks
-        slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_HASH, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, LEFT_HASH, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
-        slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_HASH, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, RIGHT_HASH, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
+        if college_hash_marks:
+            slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_HASH_COLLEGE, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, LEFT_HASH_COLLEGE, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
+            slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_HASH_COLLEGE, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, RIGHT_HASH_COLLEGE, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
+        else:
+            slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_HASH, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, LEFT_HASH, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
+            slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, RIGHT_HASH, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, RIGHT_HASH, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
         #draw ticks for the top of numbers and bottom of numbers
         slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_BOTTOM_OF_NUMBERS, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, LEFT_BOTTOM_OF_NUMBERS, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
         slide.shapes.add_connector(MSO_CONNECTOR_TYPE.STRAIGHT, LEFT_TOP_OF_NUMBERS, CENTER_Y_POS + num * FIVE_YARDS - HASH_SIZE, LEFT_TOP_OF_NUMBERS, CENTER_Y_POS + num * FIVE_YARDS + HASH_SIZE)
@@ -175,7 +181,7 @@ def add_wide_formation_and_defense_slide(play, slide, offense_library, defense_l
             text_box.text_frame.paragraphs[0].font.size = Pt(24)
 
 
-def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense):
+def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_library, is_for_offense, college_hash_marks):
     formation_name = play['Card Maker Formation']
     defense_name = play['Card Maker Defense']
 
@@ -189,13 +195,13 @@ def add_tight_formation_and_defense_slide(play, slide, offense_library, defense_
         if not subformation:
             return
         if subformation.hash_mark == 'LT':
-            x_min -= 18
-            x_max -= 18
-            offset = 18
+            x_min -= 18 if not college_hash_marks else 12
+            x_max -= 18 if not college_hash_marks else 12
+            offset = 18 if not college_hash_marks else 12
         elif subformation.hash_mark == 'RT':
-            x_min += 18
-            x_max += 18
-            offset = -18
+            x_min += 18 if not college_hash_marks else 12
+            x_max += 18 if not college_hash_marks else 12
+            offset = -18 if not college_hash_marks else -12
         for tag, player in subformation.players.items():
             if player.x < x_min or player.x > x_max:
                 continue

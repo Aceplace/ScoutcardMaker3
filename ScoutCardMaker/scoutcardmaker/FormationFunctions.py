@@ -39,6 +39,12 @@ def surface(subformation, side_type, flip):
         side = 'RT' if side == 'LT' else 'LT'
     return su.get_surface_structure(list(subformation.players.values()), side)
 
+def num_offset_backs(subformation, side_type, flip):
+    side = su.get_side(side_type, list(subformation.players.values()), subformation.hash_mark)
+    if flip == 'True':
+        side = 'RT' if side == 'LT' else 'LT'
+    return su.get_num_offset_backs(list(subformation.players.values()), side)
+
 
 def ball_on_hash(subformation):
     return subformation.hash_mark in ['LT', 'RT']
@@ -63,7 +69,8 @@ formation_function_map = {
     'ball_on_hash': ball_on_hash,
     'ball_in_middle': ball_in_middle,
     'ball': ball,
-    'is_there_te': is_there_te
+    'is_there_te': is_there_te,
+    'num_offset_backs': num_offset_backs
 }
 
 
@@ -80,5 +87,6 @@ formation_function_info = {
     'ball_on_hash': ('bool', (), ()),
     'ball_in_middle': ('bool', (), ()),
     'ball': ('string', (), ()),
-    'is_there_te': ('bool', ('string', 'string'), (possible_side_types, possible_bool))
+    'is_there_te': ('bool', ('string', 'string'), (possible_side_types, possible_bool)),
+    'num_offset_backs': ('number', ('string', 'string'), (possible_side_types, possible_bool))
 }
