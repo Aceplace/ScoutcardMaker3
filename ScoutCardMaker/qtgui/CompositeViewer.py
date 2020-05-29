@@ -131,9 +131,11 @@ class CompositeViewer(QMainWindow, Ui_CompositeViewer):
 
     def load_offense_library_from_dict(self, library_dict):
         self.formation_library = OffenseLibrary.from_dict(library_dict)
+        self.defense_visual_frame.offense_personnel_mapper = self.formation_library.label_mappers['default']
 
     def load_defense_library_from_dict(self, library_dict):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
+        self.defense_visual_frame.defense_personnel_mapper = self.defense_library.label_mappers['default']
 
     def handle_hash_change(self, hash_mark):
         try:

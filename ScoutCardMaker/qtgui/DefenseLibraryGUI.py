@@ -287,11 +287,14 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
 
     def load_offense_library_from_dict(self, library_dict):
         self.formation_library = OffenseLibrary.from_dict(library_dict)
+        self.defense_visual_frame.offense_personnel_mapper = self.formation_library.label_mappers['default']
 
     def load_defense_library_from_dict(self, library_dict):
         self.defense_library = DefenseLibrary.from_dict(library_dict)
         self.init_label_mappers()
         self.load_defense_names_into_list()
+        self.defense_visual_frame.defense_personnel_mapper = self.defense_library.label_mappers['default']
+        self.init_defender_combo(self.defense_library.label_mappers['default'].mappings)
 
     def handle_save_library(self):
         with open('defense_library.json', 'w') as file:
@@ -343,8 +346,9 @@ class DefensiveLibraryEditor(QMainWindow, Ui_DefensiveEditor):
             self.combo_personnel_grouping.addItem(personnel_grouping_key)
 
     def handle_personnel_change(self, new_personnel):
-        self.defense_visual_frame.personnel_mapper = self.defense_library.label_mappers[new_personnel]
+        self.defense_visual_frame.defense_personnel_mapper = self.defense_library.label_mappers[new_personnel]
         self.set_personnel_cb_text(self.defense_library.label_mappers[new_personnel].mappings)
+        self.init_defender_combo(self.defense_library.label_mappers[new_personnel].mappings)
         self.defense_visual_frame.update()
 
     def set_personnel_cb_text(self, personnel_mapping):
