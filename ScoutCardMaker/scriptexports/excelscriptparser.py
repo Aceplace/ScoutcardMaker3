@@ -54,6 +54,12 @@ def get_script_from_excel_file(file_name, get_sheet_callback=None):
                 play_info['VR Trainer Play Skill'] = ''
                 play_info['VR Trainer Flash Message'] = ''
                 play_info['VR Trainer Flash Time'] = 0.0
+
+            try:
+                play_info['VR Trainer Play Defender'] = row_values[17]
+            except ValueError:
+                play_info['VR Trainer Play Defender'] = row_values[17]
+
             plays.append(play_info)
     except IOError as e:
         return False, 'Couldn\'t load file'

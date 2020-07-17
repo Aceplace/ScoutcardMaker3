@@ -58,10 +58,22 @@ def export_to_football_trainer(file_name, plays, offense_library, defense_librar
             's3TimelineName': '',
             's4TimelineName': '',
             's5TimelineName': '',
-            's6TimelineName': ''
+            's6TimelineName': '',
+            'd1TimelineName': '',
+            'd2TimelineName': '',
+            'd3TimelineName': '',
+            'd4TimelineName': '',
+            'd5TimelineName': '',
+            'd6TimelineName': '',
+            'd7TimelineName': '',
+            'd8TimelineName': '',
+            'd9TimelineName': '',
+            'd10TimelineName': '',
+            'd11TimelineName': '',
         }
         line_info = play['VR Trainer Play Line'].split()
         skill_info = play['VR Trainer Play Skill'].split()
+        defender_info = play['VR Trainer Play Defender'].split()
 
         for i, player_animation_key in enumerate(line_info):
             if i == 0:
@@ -88,6 +100,9 @@ def export_to_football_trainer(file_name, plays, offense_library, defense_librar
                 play_info['s5TimelineName'] = player_animation_key
             if i == 5:
                 play_info['s6TimelineName'] = player_animation_key
+
+        for i, player_animation_key in enumerate(defender_info):
+            play_info[f'd{i+1}TimelineName'] = player_animation_key
 
         play_info['flashMessage'] = play['VR Trainer Flash Message']
         play_info['flashMessageTime'] = play['VR Trainer Flash Time']
