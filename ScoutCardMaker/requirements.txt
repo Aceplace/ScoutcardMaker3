@@ -1,5 +1,5 @@
 Click==7.0
-lxml==4.4.2
+lxml==4.6.2
 Pillow==7.0.0
 ply==3.11
 PyQt5==5.14.0
